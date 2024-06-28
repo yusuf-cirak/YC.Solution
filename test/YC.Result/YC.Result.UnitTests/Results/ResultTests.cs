@@ -6,7 +6,7 @@ public class ResultTests
     public void Success_ShouldSetIsSuccessToTrue()
     {
         // Arrange
-        var result = Result.Success;
+        var result = Result.Success();
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -17,12 +17,12 @@ public class ResultTests
     public void Fail_ShouldSetIsSuccessToFalse()
     {
         // Arrange
-        var result = Result.Fail;
+        var result = Result.Failure();
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.True(result.IsFailure);
-        Assert.Equal(Error.None, result.Error);
+        Assert.Equal(ErrorsCache.None, result.Error);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class ResultTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.False(result.IsFailure);
-        Assert.Equal(Error.None, result.Error);
+        Assert.Equal(ErrorsCache.None, result.Error);
 
         // Arrange
         isSuccess = false;
@@ -76,14 +76,14 @@ public class ResultTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.True(result.IsFailure);
-        Assert.Equal(Error.None, result.Error);
+        Assert.Equal(ErrorsCache.None, result.Error);
     }
 
     [Fact]
     public void Match_ShouldCallCorrectDelegateBasedOnIsSuccess()
     {
         // Arrange
-        var successResult = Result.Success;
+        var successResult = Result.Success();
         var failureResult = Result.Failure(Error.Create("Failure"));
 
         // Act & Assert

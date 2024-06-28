@@ -54,7 +54,7 @@ public class ErrorTests
     public void None_ShouldReturnDefaultError()
     {
         // Arrange
-        Error noneError = Error.None;
+        Error noneError = ErrorsCache.None;
 
         // Assert
         Assert.Equal(string.Empty, noneError.Title);

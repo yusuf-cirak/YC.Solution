@@ -15,7 +15,7 @@ public class GenericResultTests
         Assert.True(result.IsSuccess);
         Assert.False(result.IsFailure);
         Assert.Equal(expectedValue, result.Value);
-        Assert.Equal(Error.None, result.Error);
+        Assert.Equal(ErrorsCache.None, result.Error);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class GenericResultTests
         Assert.True(result.IsSuccess);
         Assert.False(result.IsFailure);
         Assert.Equal(expectedValue, result.Value);
-        Assert.Equal(Error.None, result.Error);
+        Assert.Equal(ErrorsCache.None, result.Error);
     }
 
     [Fact]

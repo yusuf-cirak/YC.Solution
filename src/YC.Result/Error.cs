@@ -6,7 +6,7 @@ public readonly record struct Error : IEquatable<Error>
     public string Detail { get; }
     public int Status { get; }
 
-    private Error(string title, string detail, int status)
+    internal Error(string title, string detail, int status)
     {
         Title = title;
         Detail = detail;
@@ -28,9 +28,5 @@ public readonly record struct Error : IEquatable<Error>
     public static Error Create(string detail) => new(string.Empty, detail, 400);
 
     public static Error Create(int status = 400) => new(string.Empty, string.Empty, status);
-
-
-    public static readonly Error None = new(string.Empty, string.Empty, 0);
-
 
 }

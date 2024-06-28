@@ -2,13 +2,13 @@
 
 public readonly record struct Result
 {
-    public Error Error { get; } = Error.None;
+    public Error Error { get; } = ErrorsCache.None;
 
     public bool IsSuccess { get; } = false;
 
     public bool IsFailure => !IsSuccess;
 
-    internal Result(Error error)
+    private Result(Error error)
     {
         Error = error;
     }
@@ -18,16 +18,15 @@ public readonly record struct Result
         IsSuccess = isSuccess;
     }
 
-    public static readonly Result Success = new(true);
+    public static Result Success() => ResultsCache.Success;
 
-    public static readonly Result Fail = new(false);
+    public static Result Failure() => ResultsCache.Failure;
 
-    public static Result Failure() => new(false);
     public static Result Failure(Error error) => new(error);
 
     public static implicit operator Result(Error error) => Failure(error);
 
-    public static implicit operator Result(bool isSuccess) => isSuccess ? Result.Success : Result.Fail;
+    public static implicit operator Result(bool isSuccess) => isSuccess ? ResultsCache.Success : ResultsCache.Failure;
 
 
     public TResult Match<TResult>(Func<TResult> success, Func<Error, TResult> failure)
@@ -36,11 +35,11 @@ public readonly record struct Result
 
 public readonly record struct Result<TValue>
 {
-    public TValue Value { get; private init; }
-    
-    public Error Error { get; init; } = Error.None;
+    public TValue Value { get; }
 
-    public bool IsSuccess { get; init; } = false;
+    public Error Error { get; } = ErrorsCache.None;
+
+    public bool IsSuccess { get; } = false;
 
     public bool IsFailure => !IsSuccess;
 
