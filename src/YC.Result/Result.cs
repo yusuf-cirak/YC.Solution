@@ -78,6 +78,7 @@ public readonly record struct Result
     /// </summary>
     /// <param name="success">The action to execute if the result is successful. This parameter is optional and defaults to null.</param>
     /// <param name="failure">The action to execute if the result is a failure, with the error as a parameter. This parameter is optional and defaults to null.</param>
+# nullable enable
     public void Match(Action? success = null, Action<Error>? failure = null)
     {
         if (this.IsSuccess)
@@ -178,6 +179,7 @@ public readonly record struct Result<TValue>
     /// </summary>
     /// <param name="success">The action to execute if the result is successful, with the value as a parameter. This parameter is optional and defaults to null.</param>
     /// <param name="failure">The action to execute if the result is a failure, with the error as a parameter. This parameter is optional and defaults to null.</param>
+# nullable enable
     public void Match(Action<TValue>? success = null, Action<Error>? failure = null)
     {
         if (this.IsSuccess)
