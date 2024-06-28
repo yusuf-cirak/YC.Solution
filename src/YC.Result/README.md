@@ -29,41 +29,50 @@ dotnet add package YC.Result
 ```csharp
 using YC.Result;
 
-var successResult = Result.Success();
-var failureResult = Result.Failure(new Error("Error Title", "Error Detail", 400));
+Result MyOperation(bool isSuccessful)
+{
+    if (isSuccessful)
+    {
+        return Result.Success(); // cached success result
+        // Same for Result.Failure() for cached empty failure result
+    }
+    else
+    {
+        return Error.Create("Operation Error", "Failed to complete operation.", 500);
+    }
+}
 
-if (successResult.IsSuccess)
-{
-    Console.WriteLine("Operation was successful.");
-}
-else
-{
-    Console.WriteLine($"Operation failed with error: {successResult.Error.Detail}");
-}
+var result = MyOperation(false);
+
+result.Match(
+    () => Console.WriteLine("Operation was successful."),
+    error => Console.WriteLine($"Operation failed with error: {error.Detail}")
+);
 ```
 
 ### Result with Value
 
 ```csharp
 using YC.Result;
+using Microsoft.AspNetCore.Http;
 
 Result<string> GetGreeting(bool isSuccessful)
 {
     if (isSuccessful)
     {
-        return "Hello, World!";
+        return "Hello, World!"; // creating successful result implicitly
     }
     else
     {
-        return Error.Create("Greeting Error", "Failed to generate greeting.", 500);
+        return Error.Create("Greeting Error", "Failed to generate greeting.", 500); // creating failure result implicitly
     }
 }
 
-var result = GetGreeting(true);
+var result = GetGreeting(false);
 
-result.Match(
-    value => Console.WriteLine(value),
-    error => Console.WriteLine($"Error: {error.Detail}")
+var httpResult = result.Match(
+    value => Results.Ok(value),
+    error => Results.StatusCode(error.Status)
 );
 ```
 

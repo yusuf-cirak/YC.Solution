@@ -77,4 +77,70 @@ public class GenericResultTests
         Assert.Equal("Success", successResult.Match(value => value, error => error.Detail));
         Assert.Equal("Failure", failureResult.Match(value => value, error => error.Detail));
     }
+
+    [Fact]
+    public void Match_Success_ShouldInvokeSuccessAction()
+    {
+        // Arrange
+        var result = Result<string>.Success("Test Value");
+        bool successCalled = false;
+        bool failureCalled = false;
+
+        // Act
+        result.Match(
+            success: _ => successCalled = true,
+            failure: _ => failureCalled = true);
+
+        // Assert
+        Assert.True(successCalled);
+        Assert.False(failureCalled);
+    }
+
+    [Fact]
+    public void Match_Failure_ShouldInvokeFailureAction()
+    {
+        // Arrange
+        var error = Error.Create("Failure");
+        var result = Result<string>.Failure(error);
+        bool successCalled = false;
+        bool failureCalled = false;
+
+        // Act
+        result.Match(
+            success: _ => successCalled = true,
+            failure: _ => failureCalled = true);
+
+        // Assert
+        Assert.False(successCalled);
+        Assert.True(failureCalled);
+    }
+
+    [Fact]
+    public void Match_OnlyFailureAction_ShouldInvokeFailureAction()
+    {
+        // Arrange
+        var error = Error.Create("Failure");
+        var result = Result<string>.Failure(error);
+        bool failureCalled = false;
+
+        // Act
+        result.Match(failure: _ => failureCalled = true);
+
+        // Assert
+        Assert.True(failureCalled);
+    }
+
+    [Fact]
+    public void Match_OnlySuccessAction_ShouldInvokeSuccessAction()
+    {
+        // Arrange
+        var result = Result<string>.Success("Test Value");
+        bool successCalled = false;
+
+        // Act
+        result.Match(success: _ => successCalled = true);
+
+        // Assert
+        Assert.True(successCalled);
+    }
 }

@@ -37,10 +37,10 @@ public readonly record struct Result
     {
         IsSuccess = isSuccess;
     }
-    
+
     /// <returns>A cached success <see cref="Result"/>.</returns>
     public static Result Success() => ResultsCache.Success;
-    
+
     /// <returns>A cached failure <see cref="Result"/>.</returns>
     public static Result Failure() => ResultsCache.Failure;
 
@@ -72,8 +72,24 @@ public readonly record struct Result
     /// <returns>The result of the executed function.</returns>
     public TResult Match<TResult>(Func<TResult> success, Func<Error, TResult> failure)
         => this.IsSuccess ? success() : failure(this.Error);
-}
 
+    /// <summary>
+    /// Executes one of the provided actions based on the success or failure state of the current result.
+    /// </summary>
+    /// <param name="success">The action to execute if the result is successful. This parameter is optional and defaults to null.</param>
+    /// <param name="failure">The action to execute if the result is a failure, with the error as a parameter. This parameter is optional and defaults to null.</param>
+    public void Match(Action? success = null, Action<Error>? failure = null)
+    {
+        if (this.IsSuccess)
+        {
+            success?.Invoke();
+        }
+        else
+        {
+            failure?.Invoke(this.Error);
+        }
+    }
+}
 
 /// <summary>
 /// Represents the result of an operation, indicating success or failure, and holds a value if successful.
@@ -156,4 +172,21 @@ public readonly record struct Result<TValue>
     /// <returns>The result of the executed function.</returns>
     public TResult Match<TResult>(Func<TValue, TResult> success, Func<Error, TResult> failure)
         => this.IsSuccess ? success(this.Value) : failure(this.Error);
+
+    /// <summary>
+    /// Executes one of the provided actions based on the success or failure state of the current result.
+    /// </summary>
+    /// <param name="success">The action to execute if the result is successful, with the value as a parameter. This parameter is optional and defaults to null.</param>
+    /// <param name="failure">The action to execute if the result is a failure, with the error as a parameter. This parameter is optional and defaults to null.</param>
+    public void Match(Action<TValue>? success = null, Action<Error>? failure = null)
+    {
+        if (this.IsSuccess)
+        {
+            success?.Invoke(this.Value);
+        }
+        else
+        {
+            failure?.Invoke(this.Error);
+        }
+    }
 }
