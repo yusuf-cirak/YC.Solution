@@ -21,12 +21,16 @@
 
 
     <ItemGroup>
-        <None Include=".docs\LICENSE.txt">
+        <None Include="docs\LICENSE.txt">
             <Pack>true</Pack>
             <PackagePath>\</PackagePath>
             <PackageCopyToOutput>Never</PackageCopyToOutput>
         </None>
-        <None Include=".docs\README.md" Pack="true" PackagePath="\" CopyToOutputDirectory="Never"/>
+        <None Include="README.md">
+          <Pack>true</Pack>
+          <PackagePath>\</PackagePath>
+          <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
 
