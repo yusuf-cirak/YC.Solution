@@ -10,6 +10,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "YC.Result", "YC.Result", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YC.Result.UnitTests", "test\YC.Result\YC.Result.UnitTests\YC.Result.UnitTests.csproj", "{D60673E4-B8DA-42BF-B4A2-A75AF71CBEA9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{684D75C5-B7CC-40F7-9ADA-68D8D1996782}"
+	ProjectSection(SolutionItems) = preProject
+		docs\README.md = docs\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
