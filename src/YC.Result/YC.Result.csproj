@@ -10,7 +10,7 @@
         <!--        <Company></Company>-->
         <PackageProjectUrl>https://github.com/yusuf-cirak/YC.Solution/tree/master/src/YC.Result</PackageProjectUrl>
         <RepositoryUrl>https://github.com/yusuf-cirak/YC.Solution</RepositoryUrl>
-        <PackageVersion>1.0.1</PackageVersion>
+        <PackageVersion>1.1.0</PackageVersion>
         <PackageTags>Result;ResultPattern</PackageTags>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
