@@ -6,7 +6,7 @@
 
 ## Description
 
-YC.Result is a .NET library implementing the Result pattern. It provides a consistent way to handle success and failure in your applications, encapsulating error information and result values. This library is designed to improve code readability and error handling by using record structs for results and errors.
+YC.Result is a .NET library implementing the Result pattern. It provides a consistent way to handle success and failure in your applications, encapsulating error information and result values. This library is designed to improve code readability and error handling by using records for results and errors.
 
 ## Getting Started
 

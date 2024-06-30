@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents the result of an operation, indicating success or failure.
 /// </summary>
-public readonly record struct Result
+public sealed record Result
 {
     /// <summary>
     /// Gets the error associated with a failed result.
@@ -21,7 +21,7 @@ public readonly record struct Result
     public bool IsFailure => !IsSuccess;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Result"/> record struct with the specified error.
+    /// Initializes a new instance of the <see cref="Result"/> record with the specified error.
     /// </summary>
     /// <param name="error">The error associated with the result.</param>
     private Result(Error error)
@@ -30,7 +30,7 @@ public readonly record struct Result
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Result"/> struct with the specified success flag.
+    /// Initializes a new instance of the <see cref="Result"/> record with the specified success flag.
     /// </summary>
     /// <param name="isSuccess">A value indicating whether the result is a success.</param>
     internal Result(bool isSuccess)
@@ -96,7 +96,7 @@ public readonly record struct Result
 /// Represents the result of an operation, indicating success or failure, and holds a value if successful.
 /// </summary>
 /// <typeparam name="TValue">The type of the value held by the result if successful.</typeparam>
-public readonly record struct Result<TValue>
+public sealed record Result<TValue>
 {
     /// <summary>
     /// Gets the value of the result.
@@ -119,7 +119,7 @@ public readonly record struct Result<TValue>
     public bool IsFailure => !IsSuccess;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Result{TValue}"/> struct with the specified value.
+    /// Initializes a new instance of the <see cref="Result{TValue}"/> record with the specified value.
     /// </summary>
     /// <param name="value">The value of the successful result.</param>
     private Result(TValue value)
@@ -129,7 +129,7 @@ public readonly record struct Result<TValue>
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Result{TValue}"/> struct with the specified error.
+    /// Initializes a new instance of the <see cref="Result{TValue}"/> record with the specified error.
     /// </summary>
     /// <param name="error">The error associated with the result.</param>
     private Result(Error error)
