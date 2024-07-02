@@ -18,7 +18,7 @@ Each library in this repository may have its own specific dependencies. Please r
 
 This mono-repo includes the following libraries:
 
-* [YC.Result](https://github.com/yourusername/YourRepoName/tree/master/src/YC.Result)
+* [YC.Result](https://github.com/yusuf-cirak/YC.Solution/tree/master/src/YC.Result)
     * Simple and effective Result pattern implementation.
 
 ### Tests
