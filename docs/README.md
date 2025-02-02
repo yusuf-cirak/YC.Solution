@@ -1,3 +1,5 @@
+<!-- @format -->
+
 # YC.Solution
 
 [![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://github.dev/yusuf-cirak/YC.Solution)
@@ -18,17 +20,20 @@ Each library in this repository may have its own specific dependencies. Please r
 
 This mono-repo includes the following libraries:
 
-* [YC.Result](https://github.com/yusuf-cirak/YC.Solution/tree/master/src/YC.Result)
-    * Simple and effective Result pattern implementation.
+- [YC.Result](https://github.com/yusuf-cirak/YC.Solution/tree/master/src/YC.Result)
+  - Simple and effective Result pattern implementation.
+- [YC.Monad](https://github.com/yusuf-cirak/YC.Solution/tree/master/src/YC.Monad)
+  - Comprehensive functional programming patterns with Result, Option, and Error monads.
 
 ### Tests
 
 Each library has its corresponding test projects to ensure code reliability and correctness:
 
-* [YC.Result Tests](https://github.com/yusuf-cirak/YC.Solution/tree/master/test/YC.Result)
+- [YC.Result Tests](https://github.com/yusuf-cirak/YC.Solution/tree/master/test/YC.Result)
+- [YC.Monad Tests](https://github.com/yusuf-cirak/YC.Solution/tree/master/test/YC.Monad)
 
 ## Authors
 
 Contributors and contact info:
 
-* [Yusuf Çırak](https://yusufcirak.net)
+- [Yusuf Çırak](https://yusufcirak.net)
