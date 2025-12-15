@@ -8,17 +8,21 @@
 
         <Authors>Yusuf Çırak</Authors>
         <!--        <Company></Company>-->
-        <PackageProjectUrl>https://github.com/yusuf-cirak/YC.Solution/tree/master/src/YC.Monad</PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/yusuf-cirak/YC.Solution/tree/master/src/YC.Monad.EntityFrameworkCore</PackageProjectUrl>
         <RepositoryUrl>https://github.com/yusuf-cirak/YC.Solution</RepositoryUrl>
-        <PackageVersion>1.1.1</PackageVersion>
-        <PackageTags>Monad;Result;Option;Error;FunctionalProgramming;LINQ;Railway</PackageTags>
+        <PackageVersion>1.0.0</PackageVersion>
+        <PackageTags>Monad;EntityFrameworkCore;Option;Async;FunctionalProgramming;LINQ;EFCore</PackageTags>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-        <Description>Functional programming patterns for .NET - Result, Option, and Error types with full LINQ support. Railway-oriented programming made easy.</Description>
+        <Description>Entity Framework Core extensions for YC.Monad library. Provides async LINQ operations for Option types with EF Core queryables.</Description>
         <!--        <PackageIcon></PackageIcon>-->
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.36" />
+      <PackageReference Include="YC.Monad" Version="1.1.0" />
+    </ItemGroup>
 
     <ItemGroup>
         <None Include="docs\LICENSE.txt">
