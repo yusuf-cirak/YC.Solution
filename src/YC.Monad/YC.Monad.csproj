@@ -33,4 +33,32 @@
         </None>
     </ItemGroup>
 
+
+    <ItemGroup>
+      <Compile Update="ErrorCache.cs">
+        <DependentUpon>Error.cs</DependentUpon>
+      </Compile>
+      <Compile Update="OptionCache.cs">
+        <DependentUpon>Option.cs</DependentUpon>
+      </Compile>
+      <Compile Update="OptionEnumerable.cs">
+        <DependentUpon>Option.cs</DependentUpon>
+      </Compile>
+      <Compile Update="OptionExtensions.cs">
+        <DependentUpon>Option.cs</DependentUpon>
+      </Compile>
+      <Compile Update="OptionLinq.cs">
+        <DependentUpon>Option.cs</DependentUpon>
+      </Compile>
+      <Compile Update="OptionQueryable.cs">
+        <DependentUpon>Option.cs</DependentUpon>
+      </Compile>
+      <Compile Update="ResultCache.cs">
+        <DependentUpon>Result.cs</DependentUpon>
+      </Compile>
+      <Compile Update="ResultLinq.cs">
+        <DependentUpon>Result.cs</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>
