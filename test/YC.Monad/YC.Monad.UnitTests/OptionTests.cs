@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿﻿using Xunit;
 
 namespace YC.Monad.UnitTests
 {
@@ -234,6 +234,187 @@ namespace YC.Monad.UnitTests
             // Assert
             Assert.True(resultOption.TryGetValue(out var result));
             Assert.Equal("Success: 10", result);
+        }
+    }
+
+    public class OptionLinqTests
+    {
+        [Fact]
+        public void Select_OnSome_TransformsValue()
+        {
+            // Arrange
+            var option = Option<int>.Some(5);
+
+            // Act
+            var mapped = option.Select(x => x * 2);
+
+            // Assert
+            Assert.True(mapped.TryGetValue(out var result));
+            Assert.Equal(10, result);
+        }
+
+        [Fact]
+        public void Select_OnNone_ReturnsNone()
+        {
+            // Arrange
+            var option = Option<int>.None();
+
+            // Act
+            var mapped = option.Select(x => x * 2);
+
+            // Assert
+            Assert.False(mapped.TryGetValue(out _));
+        }
+
+        [Fact]
+        public void LinqQuery_WithTwoSomeOptions_CombinesValues()
+        {
+            // Arrange
+            var option1 = Option<int>.Some(5);
+            var option2 = Option<int>.Some(10);
+
+            // Act
+            var result =
+                from x in option1
+                from y in option2
+                select x + y;
+
+            // Assert
+            Assert.True(result.TryGetValue(out var value));
+            Assert.Equal(15, value);
+        }
+
+        [Fact]
+        public void LinqQuery_WithFirstNone_ReturnsNone()
+        {
+            // Arrange
+            var option1 = Option<int>.None();
+            var option2 = Option<int>.Some(10);
+
+            // Act
+            var result =
+                from x in option1
+                from y in option2
+                select x + y;
+
+            // Assert
+            Assert.False(result.TryGetValue(out _));
+        }
+
+        [Fact]
+        public void LinqQuery_WithSecondNone_ReturnsNone()
+        {
+            // Arrange
+            var option1 = Option<int>.Some(5);
+            var option2 = Option<int>.None();
+
+            // Act
+            var result =
+                from x in option1
+                from y in option2
+                select x + y;
+
+            // Assert
+            Assert.False(result.TryGetValue(out _));
+        }
+
+        [Fact]
+        public void LinqQuery_WithWhere_FiltersCorrectly()
+        {
+            // Arrange
+            var option = Option<int>.Some(10);
+
+            // Act
+            var result =
+                from x in option
+                where x > 5
+                select x * 2;
+
+            // Assert
+            Assert.True(result.TryGetValue(out var value));
+            Assert.Equal(20, value);
+        }
+
+        [Fact]
+        public void LinqQuery_WithFailingWhere_ReturnsNone()
+        {
+            // Arrange
+            var option = Option<int>.Some(3);
+
+            // Act
+            var result =
+                from x in option
+                where x > 5
+                select x * 2;
+
+            // Assert
+            Assert.False(result.TryGetValue(out _));
+        }
+
+        [Fact]
+        public void ComplexLinqQuery_WithMultipleOperations_WorksCorrectly()
+        {
+            // Arrange
+            var option1 = Option<int>.Some(5);
+            var option2 = Option<int>.Some(10);
+
+            // Act
+            var result =
+                from x in option1
+                from y in option2
+                let sum = x + y
+                where sum > 10
+                select sum * 2;
+
+            // Assert
+            Assert.True(result.TryGetValue(out var value));
+            Assert.Equal(30, value);
+        }
+
+        [Fact]
+        public void SelectMany_WithNone_PropagatesNone()
+        {
+            // Arrange
+            var option1 = Option<int>.Some(5);
+            var option2 = Option<int>.None();
+
+            // Act
+            var result = option1.SelectMany(
+                x => option2,
+                (x, y) => x + y);
+
+            // Assert
+            Assert.False(result.TryGetValue(out _));
+        }
+
+        [Fact]
+        public void Where_OnNone_ReturnsNone()
+        {
+            // Arrange
+            var option = Option<int>.None();
+
+            // Act
+            var filtered = option.Where(x => x > 5);
+
+            // Assert
+            Assert.False(filtered.TryGetValue(out _));
+        }
+
+        [Fact]
+        public void ChainedLinqOperations_WorkCorrectly()
+        {
+            // Arrange
+            var option = Option<int>.Some(5);
+
+            // Act
+            var result = option
+                .Select(x => x * 2)
+                .Where(x => x > 5)
+                .Select(x => x.ToString());
+
+            // Assert
+            Assert.True(result.TryGetValue(out var value));
+            Assert.Equal("10", value);
         }
     }
 }
