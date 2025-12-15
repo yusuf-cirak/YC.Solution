@@ -10,12 +10,12 @@
         <!--        <Company></Company>-->
         <PackageProjectUrl>https://github.com/yusuf-cirak/YC.Solution/tree/master/src/YC.Monad</PackageProjectUrl>
         <RepositoryUrl>https://github.com/yusuf-cirak/YC.Solution</RepositoryUrl>
-        <PackageVersion>1.0.0</PackageVersion>
-        <PackageTags>Monad</PackageTags>
+        <PackageVersion>1.1.0</PackageVersion>
+        <PackageTags>Monad;Result;Option;Error;FunctionalProgramming;LINQ;Railway</PackageTags>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-        <Description>Simple and effective Monad implementation.</Description>
+        <Description>Functional programming patterns for .NET - Result, Option, and Error types with full LINQ support. Railway-oriented programming made easy.</Description>
         <!--        <PackageIcon></PackageIcon>-->
     </PropertyGroup>
 
@@ -27,45 +27,10 @@
             <PackageCopyToOutput>Never</PackageCopyToOutput>
         </None>
         <None Include="README.md">
-          <Pack>true</Pack>
-          <PackagePath>\</PackagePath>
-          <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+            <Pack>true</Pack>
+            <PackagePath>\</PackagePath>
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </None>
-    </ItemGroup>
-
-
-    <ItemGroup>
-        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-            <_Parameter1>YC.Monad.UnitTests</_Parameter1>
-        </AssemblyAttribute>
-    </ItemGroup>
-
-
-    <ItemGroup>
-      <Compile Update="ResultCache.cs">
-        <DependentUpon>Result.cs</DependentUpon>
-      </Compile>
-      <Compile Update="OptionCache.cs">
-        <DependentUpon>Option.cs</DependentUpon>
-      </Compile>
-      <Compile Update="OptionExtensions.cs">
-        <DependentUpon>Option.cs</DependentUpon>
-      </Compile>
-      <Compile Update="OptionQueryable.cs">
-        <DependentUpon>Option.cs</DependentUpon>
-      </Compile>
-      <Compile Update="OptionEnumerable.cs">
-        <DependentUpon>Option.cs</DependentUpon>
-      </Compile>
-      <Compile Update="OptionLinq.cs">
-        <DependentUpon>Option.cs</DependentUpon>
-      </Compile>
-      <Compile Update="ErrorCache.cs">
-        <DependentUpon>Error.cs</DependentUpon>
-      </Compile>
-      <Compile Update="ResultLinq.cs">
-        <DependentUpon>Result.cs</DependentUpon>
-      </Compile>
     </ItemGroup>
 
 </Project>
