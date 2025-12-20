@@ -10,7 +10,7 @@
         <!--        <Company></Company>-->
         <PackageProjectUrl>https://github.com/yusuf-cirak/YC.Solution/tree/master/src/YC.Monad</PackageProjectUrl>
         <RepositoryUrl>https://github.com/yusuf-cirak/YC.Solution</RepositoryUrl>
-        <PackageVersion>1.1.1</PackageVersion>
+        <PackageVersion>1.2.0</PackageVersion>
         <PackageTags>Monad;Result;Option;Error;FunctionalProgramming;LINQ;Railway</PackageTags>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>

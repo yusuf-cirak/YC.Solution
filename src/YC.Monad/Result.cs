@@ -55,6 +55,13 @@ public record Result
     /// </summary>
     /// <returns>A successful result.</returns>
     public static Result Success() => ResultCache.Success;
+    
+    /// <summary>
+    /// Creates a successful result containing the specified value.
+    /// </summary>
+    /// <param name="value">The success value.</param>
+    /// <returns>A successful result containing the specified value.</returns>
+    public static Result<TValue> Success<TValue>(TValue value) => new(value);
 
     /// <summary>
     /// Creates a failed result with the specified error.
@@ -62,6 +69,13 @@ public record Result
     /// <param name="error">The error that caused the failure.</param>
     /// <returns>A failed result containing the specified error.</returns>
     public static Result Failure(Error error) => new(error);
+    
+    /// <summary>
+    /// Creates a failed result with the specified error.
+    /// </summary>
+    /// <param name="error">The error that caused the failure.</param>
+    /// <returns>A failed result containing the specified error.</returns>
+    public static Result<TValue> Failure<TValue>(Error error) => new(error);
 
     /// <summary>
     /// Creates a failed result with no specific error.
@@ -129,7 +143,7 @@ public record Result<TValue> : Result
     /// Initializes a new instance of the <see cref="Result{TValue}"/> class with a success value.
     /// </summary>
     /// <param name="value">The success value.</param>
-    private Result(TValue value)
+    internal Result(TValue value)
     {
         Value = value;
         IsSuccess = true;
@@ -139,7 +153,7 @@ public record Result<TValue> : Result
     /// Initializes a new instance of the <see cref="Result{TValue}"/> class with an error.
     /// </summary>
     /// <param name="error">The error that caused the failure.</param>
-    private Result(Error error) : base()
+    internal Result(Error error) : base()
     {
         Error = error;
         IsSuccess = false;
