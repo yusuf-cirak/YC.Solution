@@ -69,7 +69,7 @@ public record Result
     /// <param name="error">The error that caused the failure.</param>
     /// <returns>A failed result containing the specified error.</returns>
     public static Result Failure(Error error) => new(error);
-    
+
     /// <summary>
     /// Creates a failed result with the specified error.
     /// </summary>
@@ -99,6 +99,7 @@ public record Result
     /// <returns>The result of executing either the success or failure function.</returns>
     public TResult Match<TResult>(Func<TResult> success, Func<Error, TResult> failure)
         => IsSuccess ? success() : failure(Error);
+
     /// <summary>
     /// Creates a failed result with the specified error.
     /// </summary>
@@ -110,7 +111,6 @@ public record Result
     /// Converts a result to a typed result of the specified type.
     /// </summary>
     /// <typeparam name="TResponse">The type of result to convert to.</typeparam>
-    /// <param name="result">The result to convert.</param>
     /// <returns>A typed result with the same success state and error (if any) as the input result.</returns>
     public TResponse ToTypedResult<TResponse>() where TResponse : Result
     {
@@ -118,11 +118,11 @@ public record Result
         {
             return (TResponse)this;
         }
-        
+
         var genericType = typeof(TResponse).GetGenericArguments()[0];
         var genericResultType = typeof(Result<>).MakeGenericType(genericType);
         return (TResponse)genericResultType.GetMethod(nameof(Result<object>.From))!
-            .Invoke(null, new object[]{this})!;
+            .Invoke(null, new object[] { this })!;
     }
 }
 
@@ -158,6 +158,7 @@ public record Result<TValue> : Result
         Error = error;
         IsSuccess = false;
     }
+
 
     /// <summary>
     /// Creates a successful result containing the specified value.

@@ -1,4 +1,8 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AOption_00601_002Ecs_002Fl_003AC_0021_003FUsers_003Fyusuf_003FAppData_003FRoaming_003FJetBrains_003FRider2025_002E3_003Fresharper_002Dhost_003FDecompilerCache_003Fdecompiler_003F172108f31d4e4aca87e83cd4ac34dc744400_003Fdc_003Fba58ff2d_003FOption_00601_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=ea639e4c_002Defa2_002D41e5_002D923d_002Da88185c796cb/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;test&amp;gt;\&amp;lt;YC.Monad&amp;gt;\&amp;lt;YC.Monad.UnitTests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;Project Location="D:\Yazılım\csharp\projects\YC.Solution\test\YC.Monad\YC.Monad.UnitTests" Presentation="&amp;lt;test&amp;gt;\&amp;lt;YC.Monad&amp;gt;\&amp;lt;YC.Monad.UnitTests&amp;gt;" /&gt;&#xD;
+  &lt;Or&gt;&#xD;
+    &lt;Project Location="D:\Yazılım\csharp\repos\YC.Solution\test\YC.Monad\YC.Monad.UnitTests" Presentation="&amp;lt;test&amp;gt;\&amp;lt;YC.Monad&amp;gt;\&amp;lt;YC.Monad.UnitTests&amp;gt;" /&gt;&#xD;
+    &lt;Project Location="D:\Yazılım\csharp\repos\YC.Solution\test\YC.Monad.EntityFrameworkCore.UnitTests" Presentation="&amp;lt;test&amp;gt;\&amp;lt;YC.Monad.EntityFrameworkCore&amp;gt;\&amp;lt;YC.Monad.EntityFrameworkCore.UnitTests&amp;gt;" /&gt;&#xD;
+  &lt;/Or&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

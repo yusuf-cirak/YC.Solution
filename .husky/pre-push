@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Running pre-push checks..."
+
+# Full build with all configurations
+echo "🔨 Building solution (Release)..."
+dotnet build --configuration Release
+BUILD_EXIT_CODE=$?
+
+if [ $BUILD_EXIT_CODE -ne 0 ]; then
+    echo "❌ Build failed! Cannot push."
+    exit 1
+fi
+
+# Run all tests with coverage
+echo "🧪 Running all tests..."
+dotnet test --configuration Release --no-build --verbosity normal
+TEST_EXIT_CODE=$?
+
+if [ $TEST_EXIT_CODE -ne 0 ]; then
+    echo "❌ Tests failed! Cannot push."
+    exit 1
+fi
+
+echo "✅ All pre-push checks passed!"
+echo "🎉 Ready to push!"

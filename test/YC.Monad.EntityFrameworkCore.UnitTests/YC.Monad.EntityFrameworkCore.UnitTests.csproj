@@ -23,8 +23,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\YC.Monad.EntityFrameworkCore\YC.Monad.EntityFrameworkCore.csproj" />
-        <ProjectReference Include="..\..\src\YC.Monad\YC.Monad.csproj" />
+      <ProjectReference Include="..\..\src\YC.Monad.EntityFrameworkCore\YC.Monad.EntityFrameworkCore.csproj" />
+      <ProjectReference Include="..\..\src\YC.Monad\YC.Monad.csproj" />
     </ItemGroup>
 
 </Project>

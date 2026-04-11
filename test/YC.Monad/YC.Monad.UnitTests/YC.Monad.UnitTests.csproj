@@ -17,8 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\src\YC.Monad\YC.Monad.csproj" />
-        <ProjectReference Include="..\YC.Monad\YC.Monad.csproj" />
+      <ProjectReference Include="..\..\..\src\YC.Monad\YC.Monad.csproj" />
     </ItemGroup>
 
 </Project> 

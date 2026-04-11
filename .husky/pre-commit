@@ -1,0 +1,54 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Check if dotnet is available
+if ! command -v dotnet &> /dev/null; then
+    echo "❌ dotnet CLI not found. Please install .NET SDK."
+    exit 1
+fi
+
+# Get staged .cs files
+STAGED_CS_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.cs$' || true)
+
+if [ -n "$STAGED_CS_FILES" ]; then
+    echo "📝 Found staged C# files, running format check..."
+    
+    # Format check on staged files
+    dotnet format --verify-no-changes --include $STAGED_CS_FILES 2>/dev/null
+    FORMAT_EXIT_CODE=$?
+    
+    if [ $FORMAT_EXIT_CODE -ne 0 ]; then
+        echo "❌ Code formatting issues detected!"
+        echo "💡 Run 'dotnet format' to fix formatting issues."
+        exit 1
+    fi
+    
+    echo "✅ Code formatting check passed"
+fi
+
+# Build the solution
+echo "🔨 Building solution..."
+dotnet build --configuration Release --no-restore > /dev/null 2>&1
+BUILD_EXIT_CODE=$?
+
+if [ $BUILD_EXIT_CODE -ne 0 ]; then
+    echo "❌ Build failed! Please fix build errors before committing."
+    exit 1
+fi
+
+echo "✅ Build successful"
+
+# Run tests
+echo "🧪 Running tests..."
+dotnet test --configuration Release --no-build --verbosity quiet > /dev/null 2>&1
+TEST_EXIT_CODE=$?
+
+if [ $TEST_EXIT_CODE -ne 0 ]; then
+    echo "❌ Tests failed! Please fix failing tests before committing."
+    exit 1
+fi
+
+echo "✅ All tests passed"
+echo "✨ Pre-commit checks completed successfully!"

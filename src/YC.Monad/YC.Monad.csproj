@@ -10,14 +10,24 @@
         <!--        <Company></Company>-->
         <PackageProjectUrl>https://github.com/yusuf-cirak/YC.Solution/tree/master/src/YC.Monad</PackageProjectUrl>
         <RepositoryUrl>https://github.com/yusuf-cirak/YC.Solution</RepositoryUrl>
-        <PackageVersion>1.2.0</PackageVersion>
+        <RepositoryType>git</RepositoryType>
         <PackageTags>Monad;Result;Option;Error;FunctionalProgramming;LINQ;Railway</PackageTags>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
         <Description>Functional programming patterns for .NET - Result, Option, and Error types with full LINQ support. Railway-oriented programming made easy.</Description>
+        <MinVerTagPrefix>v</MinVerTagPrefix>
+        <MinVerMinimumMajorMinor>1.2</MinVerMinimumMajorMinor>
         <!--        <PackageIcon></PackageIcon>-->
     </PropertyGroup>
+
+
+    <ItemGroup>
+      <PackageReference Include="MinVer" Version="6.0.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+    </ItemGroup>
 
 
     <ItemGroup>

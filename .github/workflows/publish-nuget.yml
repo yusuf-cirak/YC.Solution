@@ -1,0 +1,158 @@
+name: Publish NuGet Packages
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+      - 'efcore-v*.*.*'
+
+env:
+  DOTNET_VERSION: '6.0.x'
+  NUGET_SOURCE: 'https://api.nuget.org/v3/index.json'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Determine package to publish
+      id: package-info
+      run: |
+        TAG="${GITHUB_REF#refs/tags/}"
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        
+        if [[ $TAG == efcore-v* ]]; then
+          echo "project=src/YC.Monad.EntityFrameworkCore/YC.Monad.EntityFrameworkCore.csproj" >> $GITHUB_OUTPUT
+          echo "package_name=YC.Monad.EntityFrameworkCore" >> $GITHUB_OUTPUT
+        elif [[ $TAG == v* ]]; then
+          echo "project=src/YC.Monad/YC.Monad.csproj" >> $GITHUB_OUTPUT
+          echo "package_name=YC.Monad" >> $GITHUB_OUTPUT
+        else
+          echo "Unknown tag format: $TAG"
+          exit 1
+        fi
+    
+    - name: Restore dependencies
+      run: dotnet restore ${{ steps.package-info.outputs.project }}
+    
+    - name: Build
+      run: dotnet build ${{ steps.package-info.outputs.project }} --configuration Release --no-restore
+    
+    - name: Pack
+      run: dotnet pack ${{ steps.package-info.outputs.project }} --configuration Release --no-build --output ./artifacts
+    
+    - name: Get package version
+      id: version
+      run: |
+        VERSION=$(dotnet minver -t ${{ steps.package-info.outputs.tag }})
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Package version: $VERSION"
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Get previous tag
+        PREV_TAG=$(git describe --tags --abbrev=0 ${{ steps.package-info.outputs.tag }}^ 2>/dev/null || echo "")
+        
+        if [ -z "$PREV_TAG" ]; then
+          COMMITS=$(git log --pretty=format:"- %s (%h)" ${{ steps.package-info.outputs.tag }})
+        else
+          COMMITS=$(git log --pretty=format:"- %s (%h)" $PREV_TAG..${{ steps.package-info.outputs.tag }})
+        fi
+        
+        # Parse conventional commits
+        FEATURES=$(echo "$COMMITS" | grep -E "^- feat" || true)
+        FIXES=$(echo "$COMMITS" | grep -E "^- fix" || true)
+        BREAKING=$(echo "$COMMITS" | grep -E "^- .*BREAKING CHANGE" || true)
+        OTHERS=$(echo "$COMMITS" | grep -vE "^- (feat|fix)" || true)
+        
+        # Build changelog
+        CHANGELOG="## ${{ steps.package-info.outputs.package_name }} v${{ steps.version.outputs.version }}"
+        CHANGELOG="$CHANGELOG\n\n### Release Date: $(date +'%Y-%m-%d')\n"
+        
+        if [ -n "$BREAKING" ]; then
+          CHANGELOG="$CHANGELOG\n### ⚠️ Breaking Changes\n$BREAKING\n"
+        fi
+        
+        if [ -n "$FEATURES" ]; then
+          CHANGELOG="$CHANGELOG\n### ✨ Features\n$FEATURES\n"
+        fi
+        
+        if [ -n "$FIXES" ]; then
+          CHANGELOG="$CHANGELOG\n### 🐛 Bug Fixes\n$FIXES\n"
+        fi
+        
+        if [ -n "$OTHERS" ]; then
+          CHANGELOG="$CHANGELOG\n### 🔧 Other Changes\n$OTHERS\n"
+        fi
+        
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo -e "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+    
+    - name: Update CHANGELOG.md
+      run: |
+        CHANGELOG_FILE="CHANGELOG.md"
+        
+        if [ ! -f "$CHANGELOG_FILE" ]; then
+          echo "# Changelog" > $CHANGELOG_FILE
+          echo "" >> $CHANGELOG_FILE
+          echo "All notable changes to this project will be documented in this file." >> $CHANGELOG_FILE
+          echo "" >> $CHANGELOG_FILE
+        fi
+        
+        # Create temp file with new changelog entry
+        echo "${{ steps.changelog.outputs.changelog }}" > temp_changelog.md
+        echo "" >> temp_changelog.md
+        
+        # Append existing changelog (skip first 3 lines if they're the header)
+        if [ -f "$CHANGELOG_FILE" ]; then
+          tail -n +4 "$CHANGELOG_FILE" >> temp_changelog.md
+        fi
+        
+        # Add header back
+        {
+          echo "# Changelog"
+          echo ""
+          echo "All notable changes to this project will be documented in this file."
+          echo ""
+          cat temp_changelog.md
+        } > "$CHANGELOG_FILE"
+        
+        rm temp_changelog.md
+    
+    - name: Commit and push CHANGELOG.md
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add CHANGELOG.md
+        git diff --staged --quiet || git commit -m "docs: update CHANGELOG.md for ${{ steps.package-info.outputs.tag }}"
+        git push origin HEAD:main || git push origin HEAD:master || true
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.package-info.outputs.tag }}
+        name: ${{ steps.package-info.outputs.package_name }} v${{ steps.version.outputs.version }}
+        body: ${{ steps.changelog.outputs.changelog }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Publish to NuGet
+      run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.NUGET_SOURCE }} --skip-duplicate
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}

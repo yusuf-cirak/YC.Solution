@@ -22,7 +22,7 @@ namespace YC.Monad.UnitTests
         public void Option_Create_WithNull_ReturnsNone()
         {
             // Act
-            var option = Option<string>.Create(null);
+            var option = Option<string>.Create(null as string);
 
             // Assert
             Assert.False(option.TryGetValue(out _));
