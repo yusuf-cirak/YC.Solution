@@ -1,6 +1,25 @@
+# Build outputs
 bin/
 obj/
 /packages/
+
+# IDE
 riderModule.iml
 /_ReSharper.Caches/
 .idea/
+
+
+# Environment and secrets
+.env
+*.local
+*.local.ps1
+
+# Local development
+.vscode/
+.DS_Store
+*.swp
+*.swo
+
+# NuGet
+*.nupkg
+.nuget/

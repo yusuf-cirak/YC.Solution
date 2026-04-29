@@ -1,0 +1,133 @@
+name: Generate Changelog
+
+on:
+  workflow_run:
+    workflows: ["Detect Version Changes"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: 'Packages to include (comma-separated)'
+        required: true
+        default: 'YC.Monad,YC.Monad.EntityFrameworkCore'
+      version:
+        description: 'Version to generate changelog for'
+        required: true
+        default: ''
+
+jobs:
+  generate-changelog:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Git
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+    - name: Generate changelog from commits
+      id: changelog
+      run: |
+        # Get git log since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+        if [ -z "$LAST_TAG" ]; then
+          GIT_LOG=$(git log --oneline --pretty=format:"%h %s")
+        else
+          GIT_LOG=$(git log $LAST_TAG..HEAD --oneline --pretty=format:"%h %s")
+        fi
+
+        # Parse conventional commits
+        echo "Parsing commits..."
+
+        CHANGELOG_CONTENT=""
+
+        # Features
+        FEATURES=$(echo "$GIT_LOG" | grep "^.*feat:" || true)
+        if [ -n "$FEATURES" ]; then
+          CHANGELOG_CONTENT="$CHANGELOG_CONTENT#### Added"$'\n'
+          while IFS= read -r line; do
+            COMMIT_MSG=$(echo "$line" | cut -d' ' -f2- | sed 's/feat://g' | xargs)
+            CHANGELOG_CONTENT="$CHANGELOG_CONTENT"$'\n'"- $COMMIT_MSG"
+          done <<< "$FEATURES"
+          CHANGELOG_CONTENT="$CHANGELOG_CONTENT"$'\n'
+        fi
+
+        # Fix
+        FIXES=$(echo "$GIT_LOG" | grep "^.*fix:" || true)
+        if [ -n "$FIXES" ]; then
+          CHANGELOG_CONTENT="$CHANGELOG_CONTENT#### Fixed"$'\n'
+          while IFS= read -r line; do
+            COMMIT_MSG=$(echo "$line" | cut -d' ' -f2- | sed 's/fix://g' | xargs)
+            CHANGELOG_CONTENT="$CHANGELOG_CONTENT"$'\n'"- $COMMIT_MSG"
+          done <<< "$FIXES"
+          CHANGELOG_CONTENT="$CHANGELOG_CONTENT"$'\n'
+        fi
+
+        # Breaking Changes
+        BREAKING=$(git log --all --pretty=format:"%B" | grep -i "BREAKING CHANGE" || true)
+        if [ -n "$BREAKING" ]; then
+          CHANGELOG_CONTENT="$CHANGELOG_CONTENT#### Breaking Changes"$'\n'
+          echo "$BREAKING" | while read -r line; do
+            if [[ $line == *"BREAKING CHANGE"* ]]; then
+              MSG=${line#*BREAKING CHANGE:}
+              CHANGELOG_CONTENT="$CHANGELOG_CONTENT"$'\n'"- $MSG"
+            fi
+          done
+          CHANGELOG_CONTENT="$CHANGELOG_CONTENT"$'\n'
+        fi
+
+        echo "changelog_content<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Update CHANGELOG.md
+      run: |
+        # Get package version
+        PACKAGE_VERSIONS=$(grep '<PackageVersion>' src/YC.Monad/YC.Monad.csproj | sed -E 's/.*<PackageVersion>(.*)<\/PackageVersion>.*/\1/')
+        RELEASE_DATE=$(date +%Y-%m-%d)
+
+        # Create new section in CHANGELOG
+        TEMP_CHANGELOG=$(mktemp)
+
+        # Copy header
+        head -n 20 CHANGELOG.md > $TEMP_CHANGELOG
+
+        # Add new version section
+        cat << EOF >> $TEMP_CHANGELOG
+## [$PACKAGE_VERSIONS] - $RELEASE_DATE
+
+### Added
+- New features based on commit history
+
+### Fixed
+- Bug fixes based on commit history
+
+### Changed
+- Updates to existing functionality
+
+---
+
+EOF
+
+        # Append rest of changelog
+        tail -n +21 CHANGELOG.md >> $TEMP_CHANGELOG
+
+        mv $TEMP_CHANGELOG CHANGELOG.md
+
+        echo "✓ CHANGELOG.md updated with version $PACKAGE_VERSIONS"
+
+    - name: Commit changelog if changed
+      run: |
+        if git diff --quiet CHANGELOG.md; then
+          echo "No changes to CHANGELOG.md"
+        else
+          git add CHANGELOG.md
+          git commit -m "docs(changelog): update CHANGELOG for new release"
+          git push
+          echo "✓ Changelog committed and pushed"
+        fi
+
