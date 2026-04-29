@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!-- This file is imported by all projects in the solution -->
+
+  <!-- Common Properties -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- Code Analysis -->
+  <PropertyGroup>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevelStyle>latest</AnalysisLevelStyle>
+    <EnableStyleCopAnalyzers>true</EnableStyleCopAnalyzers>
+  </PropertyGroup>
+
+  <!-- Suppress specific warnings if needed -->
+  <PropertyGroup>
+    <!-- Suppress warnings for StyleCop -->
+    <!-- Example: <NoWarn>$(NoWarn);SA0001</NoWarn> -->
+  </PropertyGroup>
+
+  <!-- Package Common Metadata -->
+  <PropertyGroup>
+    <Company>YC.Solution</Company>
+    <Product>YC.Solution</Product>
+    <RepositoryUrl>https://github.com/yusuf-cirak/YC.Solution</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>master</RepositoryBranch>
+  </PropertyGroup>
+
+  <!-- Analyzer Package Configuration -->
+  <!-- Applied to all projects automatically -->
+  <ItemGroup>
+    <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Update="StyleCop.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Update="Roslynator.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
+

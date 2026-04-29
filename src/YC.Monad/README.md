@@ -88,6 +88,68 @@ Result untyped = Result.Success();
 Result<int> typed = untyped.ToTypedResult<Result<int>>();
 ```
 
+### Result Railway (Railroad Oriented Programming)
+
+Railway Oriented Programming (ROP) is a functional pattern for composing operations while automatically propagating failures. The `ResultRailway` extensions enable a linear workflow where errors automatically bypass subsequent operations:
+
+```csharp
+using YC.Monad;
+
+// Chain operations with automatic error propagation
+Result<User> result = FetchUser(id)
+    .Bind(ValidateUser)           // Chain result-returning operations
+    .Tap(user => Console.WriteLine($"Processing {user.Name}"))  // Side-effects
+    .Map(user => user.Email)      // Transform successful values
+    .Ensure(email => !string.IsNullOrEmpty(email), Error.Create("INVALID_EMAIL", "Email is required"))
+    .Bind(SendNotification);       // Continue the chain
+
+// Using Bind for chaining operations that return Result
+Result<Order> GetUserOrder(int userId) =>
+    GetUser(userId)
+        .Bind(user => ValidateUser(user))
+        .Bind(user => FetchOrdersForUser(user.Id))
+        .Bind(orders => orders.Count > 0 
+            ? Result<Order>.Success(orders[0]) 
+            : Error.Create("NO_ORDERS", "User has no orders"));
+
+// Using Tap for side-effects that don't transform the value
+var user = GetUser(id)
+    .Tap(u => logger.LogInformation($"User loaded: {u.Id}"))
+    .TapError(err => logger.LogError($"Failed to load user: {err.Message}"));
+
+// Using Ensure to validate conditions
+Result<int> ValidateAge(int age) =>
+    Result.Success(age)
+        .Ensure(a => a >= 18, Error.Create("UNDERAGE", "Must be 18 or older"));
+
+// Using Try/TryAsync to capture exceptions
+Result<int> ParseNumber(string input) =>
+    ResultRailway.Try(
+        () => int.Parse(input),
+        ex => Error.Create("PARSE_ERROR", $"Invalid number: {ex.Message}")
+    );
+
+// Async operations
+Task<Result<User>> async_example = GetUserAsync(id)
+    .TapAsync(u => logger.LogInformationAsync($"User: {u.Name}"))
+    .BindAsync(u => ValidateUserAsync(u))
+    .TapErrorAsync(err => SendErrorNotificationAsync(err));
+```
+
+**ROP Methods:**
+
+- **Map**: Transforms the value of a successful result
+- **MapAsync**: Asynchronous version of Map
+- **Bind**: Chains result-returning operations (equivalent to SelectMany)
+- **BindAsync**: Asynchronous version of Bind
+- **Tap**: Executes a side-effect for successful results without transforming the value
+- **TapError**: Executes a side-effect for failed results
+- **TapAsync**: Asynchronous version of Tap
+- **TapErrorAsync**: Asynchronous version of TapError
+- **Ensure**: Validates a condition; converts success to failure if predicate is not satisfied
+- **Try**: Executes a function and captures exceptions as a failure result
+- **TryAsync**: Asynchronous version of Try
+
 ### Option Type
 
 The `Option` type provides a safe way to handle nullable values:

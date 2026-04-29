@@ -1,0 +1,69 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
+  "title": "StyleCop Settings",
+  "documentation": "https://github.com/DotNetAnalyzers/StyleCopAnalyzers",
+  "settings": {
+    "documentationRules": {
+      "companyName": "YC.Solution",
+      "copyrightText": "Copyright (c) 2026 Yusuf Çırak",
+      "variables": {},
+      "documentPrivateElements": false,
+      "documentPrivateFields": false,
+      "documentInterfaces": true,
+      "documentInternalElements": false,
+      "documentProtectedElements": true,
+      "documentExplicitPrivateMembers": true,
+      "documentationCulture": "en-US",
+      "excludeFromPunctuationCheck": [
+        "summary"
+      ],
+      "allowEmptyNamespaces": false,
+      "allowFilenameUnderscores": false
+    },
+    "maintainabilityRules": {
+      "topLevelTypes": [
+        "public",
+        "internal",
+        "protected",
+        "protected internal"
+      ]
+    },
+    "namingRules": {
+      "allowCommonHungarianPrefixes": false,
+      "allowedHungarianPrefixes": [
+        "ok"
+      ]
+    },
+    "readabilityRules": {
+      "allowBuiltInTypeAliasList": [
+        "byte",
+        "char",
+        "decimal",
+        "double",
+        "float",
+        "int",
+        "long",
+        "object",
+        "sbyte",
+        "short",
+        "string",
+        "uint",
+        "ulong",
+        "ushort"
+      ],
+      "useBuiltInTypeAlias": true
+    },
+    "orderingRules": {
+      "blankLinesBetweenUsingGroups": "allow",
+      "blankLinesBeforeUsings": "require",
+      "systemUsingDirectivesFirst": true,
+      "usingDirectivesPlacement": "outsideNamespace"
+    },
+    "spacingRules": {
+      "indentationSize": 4,
+      "tabSize": 4,
+      "indentationStyle": "space"
+    }
+  }
+}
+

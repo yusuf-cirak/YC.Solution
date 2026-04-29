@@ -2,17 +2,38 @@
 
 /// <summary>
 /// Represents an optional value that may or may not contain a value of type T.
+/// </summary>
+public abstract record Option
+{
+    /// <summary>
+    /// Creates an Option from a nullable value.
+    /// </summary>
+    /// <param name="value">The nullable value to create an Option from.</param>
+    /// <returns>Some(value) if value is not null; otherwise, None.</returns>
+    public static Option<TValue> Create<TValue>(TValue? value) =>
+        value is not null ? Option<TValue>.Some(value) : Option<TValue>.None();
+
+    /// <summary>
+    /// Creates an Option containing the specified value.
+    /// </summary>
+    /// <param name="value">The value to wrap in an Option.</param>
+    /// <returns>An Option containing the specified value.</returns>
+    public static Option<TValue> Some<TValue>(TValue value) => Option<TValue>.Some(value);
+}
+
+/// <summary>
+/// Represents an optional value that may or may not contain a value of type T.
 /// This is a monad that helps handle null values and missing data in a functional way.
 /// </summary>
 /// <typeparam name="T">The type of the value that may be contained in the Option.</typeparam>
-public record Option<T>
+public record Option<T> : Option
 {
     /// <summary>
     /// Gets a value indicating whether this Option contains a value.
     /// </summary>
     /// <value>true if this Option contains a value; otherwise, false.</value>
     public bool HasValue { get; }
-    
+
     /// <summary>
     /// The underlying value stored in this Option.
     /// </summary>
@@ -67,7 +88,7 @@ public record Option<T>
         value = _content;
         return HasValue;
     }
-    
+
     /// <summary>
     /// Gets the value contained in this Option, or the default value of T if this Option has no value.
     /// </summary>
@@ -79,7 +100,8 @@ public record Option<T>
     /// </summary>
     /// <returns>The value contained in this Option.</returns>
     /// <exception cref="NoneException">Thrown when this Option has no value.</exception>
-    public T GetValueOrFail() => HasValue ? _content : throw new NoneException($"Expected value of type {typeof(T).Name} but got None");
+    public T GetValueOrFail() =>
+        HasValue ? _content : throw new NoneException($"Expected value of type {typeof(T).Name} but got None");
 
     /// <summary>
     /// Matches this Option to one of two functions based on whether it has a value.
@@ -125,5 +147,7 @@ public sealed class NoneException : Exception
     /// Initializes a new instance of the <see cref="NoneException"/> class with the specified error message.
     /// </summary>
     /// <param name="message">The message that describes the error.</param>
-    public NoneException(string message) : base(message) { }
+    public NoneException(string message) : base(message)
+    {
+    }
 }

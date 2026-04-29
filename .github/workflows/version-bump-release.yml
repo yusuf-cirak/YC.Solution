@@ -1,0 +1,136 @@
+name: Automated Version Bump and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        type: choice
+        description: 'Version bump type'
+        options:
+          - 'patch'
+          - 'minor'
+          - 'major'
+        required: true
+      package:
+        type: choice
+        description: 'Which package to bump?'
+        options:
+          - 'YC.Monad'
+          - 'YC.Monad.EntityFrameworkCore'
+          - 'Both'
+        required: true
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Git
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+    - name: Bump version
+      id: version
+      run: |
+        pwsh -Command {
+          $config = Get-Content '.github/version-config.json' | ConvertFrom-Json
+
+          function Bump-Version ($version, $type) {
+            $parts = $version -split '\.'
+            $major = [int]$parts[0]
+            $minor = [int]$parts[1]
+            $patch = [int]$parts[2]
+
+            if ($type -eq 'major') {
+              $major += 1
+              $minor = 0
+              $patch = 0
+            } elseif ($type -eq 'minor') {
+              $minor += 1
+              $patch = 0
+            } else {
+              $patch += 1
+            }
+
+            return "$major.$minor.$patch"
+          }
+
+          if ("${{ github.event.inputs.package }}" -eq "YC.Monad" -or "${{ github.event.inputs.package }}" -eq "Both") {
+            $csproj = "src/YC.Monad/YC.Monad.csproj"
+            $current = Select-String '<PackageVersion>(.*?)</PackageVersion>' $csproj | ForEach-Object { $_.Matches[0].Groups[1].Value }
+            $new = Bump-Version $current "${{ github.event.inputs.bump_type }}"
+
+            (Get-Content $csproj) -replace "<PackageVersion>.*?</PackageVersion>", "<PackageVersion>$new</PackageVersion>" | Set-Content $csproj
+
+            Write-Host "Bumped YC.Monad from $current to $new"
+            Add-Content $GITHUB_OUTPUT "monad_version=$new"
+          }
+
+          if ("${{ github.event.inputs.package }}" -eq "YC.Monad.EntityFrameworkCore" -or "${{ github.event.inputs.package }}" -eq "Both") {
+            $csproj = "src/YC.Monad.EntityFrameworkCore/YC.Monad.EntityFrameworkCore.csproj"
+            $current = Select-String '<PackageVersion>(.*?)</PackageVersion>' $csproj | ForEach-Object { $_.Matches[0].Groups[1].Value }
+            $new = Bump-Version $current "${{ github.event.inputs.bump_type }}"
+
+            (Get-Content $csproj) -replace "<PackageVersion>.*?</PackageVersion>", "<PackageVersion>$new</PackageVersion>" | Set-Content $csproj
+
+            Write-Host "Bumped YC.Monad.EntityFrameworkCore from $current to $new"
+            Add-Content $GITHUB_OUTPUT "efcore_version=$new"
+          }
+        }
+
+    - name: Update CHANGELOG
+      run: |
+        pwsh -Command {
+          $version = \"${{ steps.version.outputs.monad_version }}\"
+          if (-not $version) { $version = \"${{ steps.version.outputs.efcore_version }}\" }
+
+          $releaseDate = Get-Date -Format 'yyyy-MM-dd'
+          $newEntry = @\"
+## [$version] - $releaseDate
+
+### YC.Monad
+
+#### Added
+- New functionality
+
+#### Fixed
+- Bug fixes
+
+### YC.Monad.EntityFrameworkCore
+
+#### Added
+- New functionality
+
+#### Fixed
+- Bug fixes
+
+---
+
+\"@
+
+          $content = Get-Content 'CHANGELOG.md' -Raw
+          $content = $content -replace '## \[Unreleased\].*?---', $newEntry
+          Set-Content 'CHANGELOG.md' $content
+        }
+
+    - name: Commit and create tag
+      run: |
+        pwsh -Command {
+          $version = "${{ steps.version.outputs.monad_version }}"
+          if (-not $version) { $version = "${{ steps.version.outputs.efcore_version }}" }
+
+          git add -A
+          git commit -m "chore: bump version to $version"
+          git tag -a "v$version" -m "Release version $version"
+          git push
+          git push --tags
+
+          Write-Host "✓ Version bumped to $version and tagged"
+        }
