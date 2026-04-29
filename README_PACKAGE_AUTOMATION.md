@@ -19,6 +19,11 @@ git push
 To prevent PRs from merging before CI passes:
 
 **Automated (Recommended):**
+- Go to **Actions** → "Setup Branch Protection"
+- Click "Run workflow"
+- Fill in repository details
+
+**Alternative (Local Script):**
 ```powershell
 # Install GitHub CLI: https://cli.github.com/
 gh auth login
@@ -44,6 +49,8 @@ gh auth login
 - ✅ **generate-changelog.yml** - Keep-a-Changelog format
 - ✅ **publish-packages.yml** - NuGet publishing + GitHub releases
 - ✅ **version-bump-release.yml** - One-click version bumps
+- ✅ **setup-branch-protection.yml** - Automated branch protection setup
+- ✅ **version-management.yml** - Manual version management (alternative to local script)
 
 ### Scripts
 - ✅ **scripts/version-sync.ps1** - Local version management
@@ -68,14 +75,22 @@ gh auth login
 - **Setup Details**: `PACKAGE_AUTOMATION_SETUP.md`
 - **Checklist**: `SETUP_FINAL_CHECKLIST.md`
 
-## 🔧 Local Tools
+## 🔧 Tools & Management
 
+### GitHub Actions (Recommended)
+- **Version Management**: Actions → "Version Management" → Run workflow
+- **Branch Protection**: Actions → "Setup Branch Protection" → Run workflow
+
+### Local Scripts (Alternative)
 ```powershell
 # Check versions
 .\scripts\version-sync.ps1 -Action Check
 
 # Update version
 .\scripts\version-sync.ps1 -Action Update -Package "YC.Monad" -Version "1.4.0"
+
+# Setup branch protection
+.\scripts\setup-branch-protection.ps1 -Repository "your-username/YC.Solution" -RequireReviews
 ```
 
 ---

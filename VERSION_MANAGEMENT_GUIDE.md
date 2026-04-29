@@ -250,9 +250,30 @@ The project uses [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format
 [1.4.0]: https://github.com/yusuf-cirak/YC.Solution/compare/v1.3.0...v1.4.0
 ```
 
-## Scripts
+## Scripts & Tools
 
-### scripts/version-sync.ps1
+### GitHub Actions Workflows (Recommended)
+
+#### Version Management (`version-management.yml`)
+Manual version management through GitHub UI:
+
+1. Go to **Actions** → "Version Management"
+2. Click "Run workflow"
+3. Select action: `check`, `update`, or `validate`
+4. For updates: select package and enter new version
+5. Workflow automatically commits changes
+
+#### Branch Protection Setup (`setup-branch-protection.yml`)
+Automated branch protection configuration:
+
+1. Go to **Actions** → "Setup Branch Protection"
+2. Click "Run workflow"
+3. Configure protection rules
+4. Apply to repository
+
+### Local Scripts (Alternative)
+
+#### scripts/version-sync.ps1
 
 Local utility to sync versions:
 
@@ -265,6 +286,16 @@ Local utility to sync versions:
 
 # Validate all versions follow semantic versioning
 .\scripts\version-sync.ps1 -Action Validate
+```
+
+#### scripts/setup-branch-protection.ps1
+
+Local branch protection setup:
+
+```powershell
+# Setup branch protection (requires GitHub CLI)
+gh auth login
+.\scripts\setup-branch-protection.ps1 -Repository "owner/repo" -RequireReviews
 ```
 
 ## Troubleshooting

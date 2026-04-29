@@ -1,5 +1,6 @@
-# Branch Protection Setup (Alternative: GitHub Actions Version)
+# Branch Protection Setup (GitHub Actions Version)
 # This workflow sets up branch protection automatically when triggered
+# Alternative to local setup-branch-protection.ps1 script
 
 name: Setup Branch Protection
 
@@ -25,6 +26,16 @@ on:
         required: false
         default: 1
         type: number
+      require_up_to_date:
+        description: 'Require branches to be up to date'
+        required: false
+        default: true
+        type: boolean
+      include_admins:
+        description: 'Include administrators in protection rules'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   setup-protection:
@@ -34,14 +45,21 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { repository, branch, require_reviews, required_review_count } = context.payload.inputs;
+            const {
+              repository,
+              branch,
+              require_reviews,
+              required_review_count,
+              require_up_to_date,
+              include_admins
+            } = context.payload.inputs;
 
             const protectionRules = {
               required_status_checks: {
-                strict: true,
+                strict: require_up_to_date,
                 contexts: ['ci-build-test', 'detect-version-changes']
               },
-              enforce_admins: true,
+              enforce_admins: include_admins,
               required_pull_request_reviews: require_reviews ? {
                 required_approving_review_count: parseInt(required_review_count)
               } : null,
@@ -60,6 +78,13 @@ jobs:
               });
 
               core.info('✅ Branch protection rules applied successfully!');
+              core.info('📋 Applied rules:');
+              core.info(`   • Require status checks: ci-build-test, detect-version-changes`);
+              core.info(`   • Strict status checks: ${require_up_to_date}`);
+              if (require_reviews) {
+                core.info(`   • Required reviews: ${required_review_count}`);
+              }
+              core.info(`   • Include administrators: ${include_admins}`);
             } catch (error) {
               core.setFailed(`❌ Failed to apply branch protection: ${error.message}`);
             }

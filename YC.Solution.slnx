@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/.props/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/YC.Monad.EntityFrameworkCore/YC.Monad.EntityFrameworkCore.csproj" />
+    <Project Path="src/YC.Monad/YC.Monad.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/YC.Monad.EntityFrameworkCore.UnitTests/YC.Monad.EntityFrameworkCore.UnitTests.csproj" />
+    <Project Path="test/YC.Monad.UnitTests/YC.Monad.UnitTests.csproj" />
+  </Folder>
+</Solution>
