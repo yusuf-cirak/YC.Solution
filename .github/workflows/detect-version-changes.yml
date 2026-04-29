@@ -44,7 +44,9 @@ jobs:
           done
 
           echo "version_changed=$VERSION_CHANGED" >> $GITHUB_OUTPUT
-          echo "packages=$CHANGED_PACKAGES" >> $GITHUB_OUTPUT
+          echo "packages<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_PACKAGES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
           if [ "$VERSION_CHANGED" = true ]; then
             echo "Version changes detected!"
