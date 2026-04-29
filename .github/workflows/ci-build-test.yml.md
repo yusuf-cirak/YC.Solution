@@ -24,10 +24,8 @@ None - this workflow doesn't require any secrets.
 
 ## Configuration
 
-The workflow uses the following .NET versions:
+The workflow uses the following .NET version:
 - .NET 6.0
-- .NET 7.0
-- .NET 8.0
 
 ## Outputs
 
