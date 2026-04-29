@@ -1,0 +1,211 @@
+{
+  "$schema": "http://json.schemastore.org/roslynator.json",
+  "settings": {
+    "PrefixFieldIdentifierWithUnderscore": true
+  },
+  "refactorings": {
+  },
+  "analyzers": {
+    "RCS0001": {
+      "enabled": false,
+      "severity": "info"
+    },
+    "RCS1001": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1008": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1018": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1019": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1021": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1025": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1034": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1035": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1036": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1037": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1039": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1043": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1047": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1051": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1058": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1073": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1077": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1078": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1080": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1090": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1100": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1104": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1110": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1118": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1123": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1126": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1133": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1139": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1140": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1145": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1146": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1156": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1158": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1159": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1165": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1168": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1169": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1170": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1175": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1176": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1177": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1178": {
+      "enabled": true,
+      "severity": "info"
+    },
+    "RCS1181": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1187": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1188": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1192": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1194": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1197": {
+      "enabled": true,
+      "severity": "warning"
+    },
+    "RCS1211": {
+      "enabled": true,
+      "severity": "warning"
+    }
+  }
+}
+

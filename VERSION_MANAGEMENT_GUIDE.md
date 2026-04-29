@@ -143,7 +143,37 @@ Configure these secrets in your GitHub repository (Settings → Secrets and vari
    git push --tags
    ```
 
-### 3. Local Version Management Script (PowerShell)
+### 3. Branch Protection Rules
+
+To prevent PRs from being merged before CI checks pass, set up branch protection rules:
+
+**Option A: Automated Setup (Recommended)**
+
+```powershell
+# Install GitHub CLI first: https://cli.github.com/
+
+# Authenticate
+gh auth login
+
+# Run the setup script
+.\scripts\setup-branch-protection.ps1 -Repository "your-username/YC.Solution" -RequireReviews -RequiredReviewCount 1
+```
+
+**Option B: Manual Setup via GitHub UI**
+
+1. Go to **Settings** → **Branches** → **Add rule**
+2. **Branch name pattern**: `main` (or `master`)
+3. **Require status checks to pass**:
+   - Check "Require status checks to pass before merging"
+   - Check "Require branches to be up to date before merging"
+   - Add these checks: `ci-build-test`, `detect-version-changes`
+4. **Require pull request reviews** (optional but recommended):
+   - Check "Require a pull request before merging"
+   - Set "Required approving reviews: 1"
+5. **Include administrators**: Check this
+6. Click **Create**
+
+### 4. Local Version Management Script (PowerShell)
 
 Use `scripts/version-sync.ps1` to check and update versions locally:
 
