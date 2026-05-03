@@ -38,11 +38,6 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup .NET 6.0
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '6.0'
-
       - name: Load configuration
         id: config
         run: |
