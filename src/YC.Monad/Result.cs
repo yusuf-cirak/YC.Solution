@@ -9,7 +9,6 @@ public record Result
     /// <summary>
     /// Gets the error associated with this result if it represents a failure.
     /// </summary>
-    /// <value>The error object if this is a failure, or <see cref="ErrorCache.None"/> if this is a success.</value>
     public Error Error { get; protected init; }
 
     /// <summary>
