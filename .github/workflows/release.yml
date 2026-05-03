@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DOTNET_VERSION: '6.0.x'
+  DOTNET_VERSION: "6.0.x"
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
@@ -39,7 +39,7 @@ jobs:
           has_changes="false"
 
           # Get all changed files in this push
-          if [ ${{ github.event_name }} == 'push' ]; then
+          if [ "${{ github.event_name }}" == 'push' ]; then
             # Compare with previous commit
             base_ref="${{ github.event.before }}"
             if [ -z "$base_ref" ] || [ "$base_ref" == "0000000000000000000000000000000000000000" ]; then
@@ -55,11 +55,20 @@ jobs:
           echo "Changed files:"
           echo "$changed_files"
 
+          # Convert changed_files to JSON array for jq processing
+          changed_files_json=$(echo "$changed_files" | jq -R . | jq -s .)
+
           # Parse projects.json and check which ones changed
-          changed_projects=$(echo "$projects_json" | jq -c '.projects | map(select(
-            ("'"$(echo "$changed_files" | tr '\n' '|' | sed 's/|$//')"'" | grep -q "^" + .path) or
-            .path == "."
-          ))')
+          # For each project, check if any changed file starts with its path
+          changed_projects=$(echo "$projects_json" | jq \
+            --argjson changed_files "$changed_files_json" \
+            -c '.projects | map(select(
+              (.path == ".") or
+              (
+                .path as $project_path |
+                ($changed_files | map(startswith($project_path)) | any)
+              )
+            ))')
 
           if [ "$(echo "$changed_projects" | jq 'length')" -gt 0 ]; then
             has_changes="true"
@@ -134,13 +143,13 @@ jobs:
             exit 1
           elif [ "$current_num" -eq "$latest_num" ]; then
             echo "⚠️  Version unchanged. Publish will be skipped for this package."
-            echo "should_publish=false" >> $GITHUB_ENV
+            should_publish=false
           else
             echo "✅ Version increased. Will proceed with publish."
-            echo "should_publish=true" >> $GITHUB_ENV
+            should_publish=true
           fi
 
-          echo "should_publish=${should_publish:-true}" >> $GITHUB_OUTPUT
+          echo "should_publish=$should_publish" >> $GITHUB_OUTPUT
 
   # Step 3: Build and Test (matrix for all changed projects)
   build-and-test:
@@ -176,7 +185,7 @@ jobs:
         run: dotnet build ${{ matrix.project.csproj }} --configuration Release --no-restore
 
       - name: Run tests
-        run: dotnet test ${{ matrix.project.testProject }} --configuration Release --no-build --logger "console;verbosity=normal" --verbosity normal
+        run: dotnet test ${{ matrix.project.testProject }} --configuration Release --no-restore --logger "console;verbosity=normal" --verbosity normal
         continue-on-error: false
 
   # Step 4: SonarQube Analysis (optional, skips if SONAR_TOKEN not set)
@@ -347,4 +356,3 @@ jobs:
           else
             echo "✅ All packages published successfully!"
           fi
-
