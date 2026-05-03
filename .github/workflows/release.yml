@@ -183,7 +183,7 @@ jobs:
   sonar-analysis:
     name: SonarQube Analysis - ${{ matrix.project.name }}
     needs: [detect-changes, validate-versions, build-and-test]
-    if: needs.detect-changes.outputs.has-changes == 'true' && secrets.SONAR_TOKEN != ''
+    if: needs.detect-changes.outputs.has-changes == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
