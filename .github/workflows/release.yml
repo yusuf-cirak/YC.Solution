@@ -3,7 +3,7 @@ name: Release - Publish NuGet Packages
 on:
   push:
     branches:
-      - main
+      - master
 
 concurrency:
   group: release-${{ github.ref }}
@@ -183,9 +183,7 @@ jobs:
   sonar-analysis:
     name: SonarQube Analysis - ${{ matrix.project.name }}
     needs: [detect-changes, validate-versions, build-and-test]
-    if: |
-      needs.detect-changes.outputs.has-changes == 'true' &&
-      secrets.SONAR_TOKEN != ''
+    if: needs.detect-changes.outputs.has-changes == 'true' && secrets.SONAR_TOKEN != ''
     runs-on: ubuntu-latest
     strategy:
       matrix:
