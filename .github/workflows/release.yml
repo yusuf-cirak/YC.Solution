@@ -4,6 +4,23 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      force_run:
+        description: "Force run all steps even if no changes detected"
+        required: false
+        type: boolean
+        default: false
+      run_sonar:
+        description: "Run SonarQube analysis"
+        required: false
+        type: boolean
+        default: true
+      skip_tests:
+        description: "Skip tests"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: release-${{ github.ref }}
@@ -22,6 +39,7 @@ jobs:
     outputs:
       projects: ${{ steps.detect.outputs.projects }}
       has-changes: ${{ steps.detect.outputs.has-changes }}
+      force-run: ${{ github.event.inputs.force_run || 'false' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,40 +56,47 @@ jobs:
           changed_projects="[]"
           has_changes="false"
 
-          # Get all changed files in this push
-          if [ "${{ github.event_name }}" == 'push' ]; then
-            # Compare with previous commit
-            base_ref="${{ github.event.before }}"
-            if [ -z "$base_ref" ] || [ "$base_ref" == "0000000000000000000000000000000000000000" ]; then
-              # First push - check all projects
-              changed_files=$(git ls-tree -r --name-only HEAD)
-            else
-              changed_files=$(git diff --name-only "$base_ref" HEAD)
-            fi
-          else
-            changed_files=$(git ls-tree -r --name-only HEAD)
-          fi
-
-          echo "Changed files:"
-          echo "$changed_files"
-
-          # Convert changed_files to JSON array for jq processing
-          changed_files_json=$(echo "$changed_files" | jq -R . | jq -s .)
-
-          # Parse projects.json and check which ones changed
-          # For each project, check if any changed file starts with its path
-          changed_projects=$(echo "$projects_json" | jq \
-            --argjson changed_files "$changed_files_json" \
-            -c '.projects | map(select(
-              (.path == ".") or
-              (
-                .path as $project_path |
-                ($changed_files | map(startswith($project_path)) | any)
-              )
-            ))')
-
-          if [ "$(echo "$changed_projects" | jq 'length')" -gt 0 ]; then
+          # If force_run is enabled, use all projects
+          if [ "${{ github.event.inputs.force_run }}" == "true" ]; then
+            echo "Force run enabled - using all projects"
+            changed_projects=$(echo "$projects_json" | jq -c '.projects')
             has_changes="true"
+          else
+            # Get all changed files in this push
+            if [ "${{ github.event_name }}" == 'push' ]; then
+              # Compare with previous commit
+              base_ref="${{ github.event.before }}"
+              if [ -z "$base_ref" ] || [ "$base_ref" == "0000000000000000000000000000000000000000" ]; then
+                # First push - check all projects
+                changed_files=$(git ls-tree -r --name-only HEAD)
+              else
+                changed_files=$(git diff --name-only "$base_ref" HEAD)
+              fi
+            else
+              changed_files=$(git ls-tree -r --name-only HEAD)
+            fi
+
+            echo "Changed files:"
+            echo "$changed_files"
+
+            # Convert changed_files to JSON array for jq processing
+            changed_files_json=$(echo "$changed_files" | jq -R . | jq -s .)
+
+            # Parse projects.json and check which ones changed
+            # For each project, check if any changed file starts with its path
+            changed_projects=$(echo "$projects_json" | jq \
+              --argjson changed_files "$changed_files_json" \
+              -c '.projects | map(select(
+                (.path == ".") or
+                (
+                  .path as $project_path |
+                  ($changed_files | map(startswith($project_path)) | any)
+                )
+              ))')
+
+            if [ "$(echo "$changed_projects" | jq 'length')" -gt 0 ]; then
+              has_changes="true"
+            fi
           fi
 
           echo "projects=$(echo "$changed_projects" | jq -c '.')" >> $GITHUB_OUTPUT
@@ -82,7 +107,7 @@ jobs:
   validate-versions:
     name: Validate Versions
     needs: detect-changes
-    if: needs.detect-changes.outputs.has-changes == 'true'
+    if: needs.detect-changes.outputs.has-changes == 'true' || needs.detect-changes.outputs.force-run == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -155,7 +180,7 @@ jobs:
   build-and-test:
     name: Build & Test - ${{ matrix.project.name }}
     needs: [detect-changes, validate-versions]
-    if: needs.detect-changes.outputs.has-changes == 'true'
+    if: (needs.detect-changes.outputs.has-changes == 'true' || needs.detect-changes.outputs.force-run == 'true') && github.event.inputs.skip_tests != 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -192,7 +217,7 @@ jobs:
   sonar-analysis:
     name: SonarQube Analysis - ${{ matrix.project.name }}
     needs: [detect-changes, validate-versions, build-and-test]
-    if: needs.detect-changes.outputs.has-changes == 'true'
+    if: (needs.detect-changes.outputs.has-changes == 'true' || needs.detect-changes.outputs.force-run == 'true') && github.event.inputs.run_sonar != 'false'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -256,7 +281,7 @@ jobs:
     name: Publish - ${{ matrix.project.name }}
     needs: [detect-changes, validate-versions, build-and-test]
     # Skip Sonar check if secrets not available; don't fail overall if Sonar fails
-    if: needs.detect-changes.outputs.has-changes == 'true'
+    if: needs.detect-changes.outputs.has-changes == 'true' || needs.detect-changes.outputs.force-run == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
