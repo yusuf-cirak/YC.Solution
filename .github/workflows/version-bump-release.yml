@@ -95,7 +95,8 @@ jobs:
         RELEASE_DATE=$(date +%Y-%m-%d)
 
         # Create changelog entry
-        NEW_ENTRY="## [$VERSION] - $RELEASE_DATE
+        cat > /tmp/changelog_entry.txt << 'EOF'
+## [$VERSION] - $RELEASE_DATE
 
 ### YC.Monad
 
@@ -115,7 +116,11 @@ jobs:
 
 ---
 
-"
+EOF
+
+        # Replace variables in template
+        sed -i "s/\$VERSION/$VERSION/g; s/\$RELEASE_DATE/$RELEASE_DATE/g" /tmp/changelog_entry.txt
+        NEW_ENTRY=$(cat /tmp/changelog_entry.txt)
 
         # Update CHANGELOG.md
         sed -i "/## \[Unreleased\]/, /---/c\\$NEW_ENTRY" CHANGELOG.md
