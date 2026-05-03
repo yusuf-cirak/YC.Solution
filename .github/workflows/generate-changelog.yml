@@ -97,21 +97,21 @@ jobs:
         head -n 20 CHANGELOG.md > $TEMP_CHANGELOG
 
         # Add new version section
-        cat << 'EOF' >> $TEMP_CHANGELOG
-## [$PACKAGE_VERSIONS] - $RELEASE_DATE
-
-### Added
-- New features based on commit history
-
-### Fixed
-- Bug fixes based on commit history
-
-### Changed
-- Updates to existing functionality
-
----
-
-EOF
+        {
+          echo "## [$PACKAGE_VERSIONS] - $RELEASE_DATE"
+          echo ""
+          echo "### Added"
+          echo "- New features based on commit history"
+          echo ""
+          echo "### Fixed"
+          echo "- Bug fixes based on commit history"
+          echo ""
+          echo "### Changed"
+          echo "- Updates to existing functionality"
+          echo ""
+          echo "---"
+          echo ""
+        } >> $TEMP_CHANGELOG
 
         # Append rest of changelog
         tail -n +21 CHANGELOG.md >> $TEMP_CHANGELOG
