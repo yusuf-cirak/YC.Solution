@@ -87,13 +87,13 @@ jobs:
 
     - name: Update CHANGELOG
       run: |
-        pwsh -Command {
-          $version = \"${{ steps.version.outputs.monad_version }}\"
-          if (-not $version) { $version = \"${{ steps.version.outputs.efcore_version }}\" }
+        pwsh -Command "
+          \$version = '${{ steps.version.outputs.monad_version }}'
+          if (-not \$version) { \$version = '${{ steps.version.outputs.efcore_version }}' }
 
-          $releaseDate = Get-Date -Format 'yyyy-MM-dd'
-          $newEntry = @\"
-## [$version] - $releaseDate
+          \$releaseDate = Get-Date -Format 'yyyy-MM-dd'
+          \$newEntry = @'
+## [\$version] - \$releaseDate
 
 ### YC.Monad
 
@@ -113,12 +113,12 @@ jobs:
 
 ---
 
-\"@
+'@
 
-          $content = Get-Content 'CHANGELOG.md' -Raw
-          $content = $content -replace '## \[Unreleased\].*?---', $newEntry
-          Set-Content 'CHANGELOG.md' $content
-        }
+          \$content = Get-Content 'CHANGELOG.md' -Raw
+          \$content = \$content -replace '## \[Unreleased\].*?---', \$newEntry
+          Set-Content 'CHANGELOG.md' \$content
+        "
 
     - name: Commit and create tag
       run: |

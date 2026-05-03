@@ -97,7 +97,7 @@ jobs:
         head -n 20 CHANGELOG.md > $TEMP_CHANGELOG
 
         # Add new version section
-        cat << EOF >> $TEMP_CHANGELOG
+        cat << 'EOF' >> $TEMP_CHANGELOG
 ## [$PACKAGE_VERSIONS] - $RELEASE_DATE
 
 ### Added
@@ -130,4 +130,3 @@ EOF
           git push
           echo "✓ Changelog committed and pushed"
         fi
-
