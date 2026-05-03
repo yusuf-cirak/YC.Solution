@@ -216,10 +216,9 @@ jobs:
         run: |
           dotnet sonarscanner begin \
             /k:"${{ matrix.project.name }}" \
+            /o:"${{ vars.SONAR_ORGANIZATION }}" \
             /d:sonar.host.url="${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}" \
             /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-            /d:sonar.sources="${{ matrix.project.path }}" \
-            /d:sonar.tests="test" \
             /d:sonar.exclusions="**/bin/**,**/obj/**" \
             /d:sonar.cs.opencover.reportsPaths="coverage.xml"
 
