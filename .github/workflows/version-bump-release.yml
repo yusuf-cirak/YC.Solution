@@ -78,31 +78,29 @@ jobs:
         RELEASE_DATE=$(date +%Y-%m-%d)
 
         # Create changelog entry
-        cat > /tmp/changelog_entry.txt << 'EOF'
-## [$VERSION] - $RELEASE_DATE
+        {
+          echo "## [$VERSION] - $RELEASE_DATE"
+          echo ""
+          echo "### YC.Monad"
+          echo ""
+          echo "#### Added"
+          echo "- New functionality"
+          echo ""
+          echo "#### Fixed"
+          echo "- Bug fixes"
+          echo ""
+          echo "### YC.Monad.EntityFrameworkCore"
+          echo ""
+          echo "#### Added"
+          echo "- New functionality"
+          echo ""
+          echo "#### Fixed"
+          echo "- Bug fixes"
+          echo ""
+          echo "---"
+          echo ""
+        } > /tmp/changelog_entry.txt
 
-### YC.Monad
-
-#### Added
-- New functionality
-
-#### Fixed
-- Bug fixes
-
-### YC.Monad.EntityFrameworkCore
-
-#### Added
-- New functionality
-
-#### Fixed
-- Bug fixes
-
----
-
-EOF
-
-        # Replace variables in template
-        sed -i "s/\$VERSION/$VERSION/g; s/\$RELEASE_DATE/$RELEASE_DATE/g" /tmp/changelog_entry.txt
         NEW_ENTRY=$(cat /tmp/changelog_entry.txt)
 
         # Update CHANGELOG.md
