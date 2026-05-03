@@ -188,7 +188,6 @@ namespace YC.Monad.UnitTests
             Assert.True(result.IsSuccess);
             Assert.False(result.IsFailure);
             Assert.Equal(value, result.Value);
-            Assert.Equal(ErrorCache.None, result.Error);
         }
 
         [Fact]

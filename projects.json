@@ -1,0 +1,17 @@
+{
+  "projects": [
+    {
+      "name": "YC.Monad",
+      "path": "src/YC.Monad",
+      "csproj": "src/YC.Monad/YC.Monad.csproj",
+      "testProject": "test/YC.Monad.UnitTests/YC.Monad.UnitTests.csproj"
+    },
+    {
+      "name": "YC.Monad.EntityFrameworkCore",
+      "path": "src/YC.Monad.EntityFrameworkCore",
+      "csproj": "src/YC.Monad.EntityFrameworkCore/YC.Monad.EntityFrameworkCore.csproj",
+      "testProject": "test/YC.Monad.EntityFrameworkCore.UnitTests/YC.Monad.EntityFrameworkCore.UnitTests.csproj"
+    }
+  ]
+}
+

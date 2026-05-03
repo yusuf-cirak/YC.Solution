@@ -1,0 +1,352 @@
+name: Release - Publish NuGet Packages
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_VERSION: '6.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  # Step 1: Detect which projects have changed
+  detect-changes:
+    name: Detect Changed Projects
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.detect.outputs.projects }}
+      has-changes: ${{ steps.detect.outputs.has-changes }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed projects
+        id: detect
+        run: |
+          # Get list of all projects from projects.json
+          projects_json=$(cat projects.json)
+
+          # Initialize output variables
+          changed_projects="[]"
+          has_changes="false"
+
+          # Get all changed files in this push
+          if [ ${{ github.event_name }} == 'push' ]; then
+            # Compare with previous commit
+            base_ref="${{ github.event.before }}"
+            if [ -z "$base_ref" ] || [ "$base_ref" == "0000000000000000000000000000000000000000" ]; then
+              # First push - check all projects
+              changed_files=$(git ls-tree -r --name-only HEAD)
+            else
+              changed_files=$(git diff --name-only "$base_ref" HEAD)
+            fi
+          else
+            changed_files=$(git ls-tree -r --name-only HEAD)
+          fi
+
+          echo "Changed files:"
+          echo "$changed_files"
+
+          # Parse projects.json and check which ones changed
+          changed_projects=$(echo "$projects_json" | jq -c '.projects | map(select(
+            ("'"$(echo "$changed_files" | tr '\n' '|' | sed 's/|$//')"'" | grep -q "^" + .path) or
+            .path == "."
+          ))')
+
+          if [ "$(echo "$changed_projects" | jq 'length')" -gt 0 ]; then
+            has_changes="true"
+          fi
+
+          echo "projects=$(echo "$changed_projects" | jq -c '.')" >> $GITHUB_OUTPUT
+          echo "has-changes=$has_changes" >> $GITHUB_OUTPUT
+          echo "Detected projects: $changed_projects"
+
+  # Step 2: Validate versions for each changed project
+  validate-versions:
+    name: Validate Versions
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect-changes.outputs.projects) }}
+      fail-fast: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Extract version from .csproj
+        id: version
+        run: |
+          # Extract PackageVersion from .csproj
+          version=$(grep -oPm1 '(?<=<PackageVersion>)[^<]+' "${{ matrix.project.csproj }}")
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "Project: ${{ matrix.project.name }}"
+          echo "Version in .csproj: $version"
+
+      - name: Query NuGet for latest published version
+        id: nuget
+        run: |
+          package_name="${{ matrix.project.name }}"
+          # Query NuGet API (do not fail if package doesn't exist yet)
+          response=$(curl -s "https://api.nuget.org/v3-flatcontainer/$package_name/index.json" || echo "{}")
+
+          # Extract latest version or set to 0.0.0 if not found
+          latest_version=$(echo "$response" | jq -r '.versions[-1] // "0.0.0"' 2>/dev/null || echo "0.0.0")
+          echo "latest-version=$latest_version" >> $GITHUB_OUTPUT
+          echo "Latest published version on NuGet: $latest_version"
+
+      - name: Validate version semantics
+        run: |
+          current_version="${{ steps.version.outputs.version }}"
+          latest_version="${{ steps.nuget.outputs.latest-version }}"
+
+          echo "Comparing versions:"
+          echo "  Current (from .csproj): $current_version"
+          echo "  Latest (from NuGet):    $latest_version"
+
+          # Parse versions into comparable format
+          parse_version() {
+            echo "$1" | awk -F. '{printf "%d%03d%03d", $1, $2, $3}'
+          }
+
+          current_num=$(parse_version "$current_version")
+          latest_num=$(parse_version "$latest_version")
+
+          echo "  Current (numeric): $current_num"
+          echo "  Latest (numeric):  $latest_num"
+
+          if [ "$current_num" -lt "$latest_num" ]; then
+            echo "❌ ERROR: Version decreased! This is not allowed."
+            exit 1
+          elif [ "$current_num" -eq "$latest_num" ]; then
+            echo "⚠️  Version unchanged. Publish will be skipped for this package."
+            echo "should_publish=false" >> $GITHUB_ENV
+          else
+            echo "✅ Version increased. Will proceed with publish."
+            echo "should_publish=true" >> $GITHUB_ENV
+          fi
+
+          echo "should_publish=${should_publish:-true}" >> $GITHUB_OUTPUT
+
+  # Step 3: Build and Test (matrix for all changed projects)
+  build-and-test:
+    name: Build & Test - ${{ matrix.project.name }}
+    needs: [detect-changes, validate-versions]
+    if: needs.detect-changes.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect-changes.outputs.projects) }}
+      fail-fast: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore NuGet cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/packages.lock.json', '**/Directory.Packages.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ matrix.project.csproj }}
+
+      - name: Build project
+        run: dotnet build ${{ matrix.project.csproj }} --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test ${{ matrix.project.testProject }} --configuration Release --no-build --logger "console;verbosity=normal" --verbosity normal
+        continue-on-error: false
+
+  # Step 4: SonarQube Analysis (optional, skips if SONAR_TOKEN not set)
+  sonar-analysis:
+    name: SonarQube Analysis - ${{ matrix.project.name }}
+    needs: [detect-changes, validate-versions, build-and-test]
+    if: |
+      needs.detect-changes.outputs.has-changes == 'true' &&
+      secrets.SONAR_TOKEN != ''
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect-changes.outputs.projects) }}
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install SonarScanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Begin SonarQube analysis
+        run: |
+          dotnet sonarscanner begin \
+            /k:"${{ matrix.project.name }}" \
+            /d:sonar.host.url="${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}" \
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.sources="${{ matrix.project.path }}" \
+            /d:sonar.tests="test" \
+            /d:sonar.exclusions="**/bin/**,**/obj/**" \
+            /d:sonar.cs.opencover.reportsPaths="coverage.xml"
+
+      - name: Restore and build
+        run: |
+          dotnet restore ${{ matrix.project.csproj }}
+          dotnet build ${{ matrix.project.csproj }} --configuration Release --no-restore
+
+      - name: End SonarQube analysis
+        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Check SonarQube Quality Gate
+        run: |
+          # Wait briefly for SonarCloud to process
+          sleep 10
+
+          # Query Quality Gate status
+          response=$(curl -s -H "Authorization: Bearer ${{ secrets.SONAR_TOKEN }}" \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{ matrix.project.name }}" || echo "{}")
+
+          status=$(echo "$response" | jq -r '.projectStatus.status // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
+
+          echo "Quality Gate Status: $status"
+
+          if [ "$status" != "OK" ]; then
+            echo "❌ Quality Gate failed!"
+            exit 1
+          fi
+          echo "✅ Quality Gate passed!"
+
+  # Step 5: Pack and Publish to NuGet
+  publish:
+    name: Publish - ${{ matrix.project.name }}
+    needs: [detect-changes, validate-versions, build-and-test]
+    # Skip Sonar check if secrets not available; don't fail overall if Sonar fails
+    if: needs.detect-changes.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect-changes.outputs.projects) }}
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore NuGet cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/packages.lock.json', '**/Directory.Packages.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ matrix.project.csproj }}
+
+      - name: Build project
+        run: dotnet build ${{ matrix.project.csproj }} --configuration Release --no-restore
+
+      - name: Pack NuGet package
+        run: dotnet pack ${{ matrix.project.csproj }} --configuration Release --no-build --output ./nupkg
+
+      - name: Publish to NuGet (with retries)
+        run: |
+          # Find the generated .nupkg file
+          nupkg_file=$(find ./nupkg -name "*.nupkg" -type f | head -1)
+
+          if [ -z "$nupkg_file" ]; then
+            echo "❌ No .nupkg file found!"
+            exit 1
+          fi
+
+          echo "Found package: $nupkg_file"
+
+          # Retry configuration
+          max_attempts=3
+          attempt=1
+
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt of $max_attempts..."
+
+            if dotnet nuget push "$nupkg_file" \
+              --api-key "${{ secrets.NUGET_API_KEY }}" \
+              --source https://api.nuget.org/v3/index.json \
+              --skip-duplicate; then
+              echo "✅ Package published successfully!"
+              exit 0
+            fi
+
+            if [ $attempt -lt $max_attempts ]; then
+              echo "⚠️  Attempt $attempt failed. Waiting 10 seconds before retry..."
+              sleep 10
+            fi
+
+            attempt=$((attempt + 1))
+          done
+
+          echo "❌ Failed to publish package after $max_attempts attempts."
+          exit 1
+
+      - name: Verify published package
+        run: |
+          # Extract package name and version
+          package_name="${{ matrix.project.name }}"
+
+          # Wait a moment for NuGet indexing
+          sleep 30
+
+          # Query NuGet API to verify
+          response=$(curl -s "https://api.nuget.org/v3-flatcontainer/$package_name/index.json" || echo "{}")
+          latest_version=$(echo "$response" | jq -r '.versions[-1] // "unknown"' 2>/dev/null || echo "unknown")
+
+          echo "Latest version on NuGet: $latest_version"
+
+  # Success marker
+  publish-complete:
+    name: Publish Complete
+    needs: [detect-changes, publish]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check workflow status
+        run: |
+          if [ "${{ needs.publish.result }}" == "failure" ]; then
+            echo "❌ Publishing failed for one or more packages!"
+            exit 1
+          else
+            echo "✅ All packages published successfully!"
+          fi
+

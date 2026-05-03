@@ -10,7 +10,7 @@ public record Result
     /// Gets the error associated with this result if it represents a failure.
     /// </summary>
     /// <value>The error object if this is a failure, or <see cref="ErrorCache.None"/> if this is a success.</value>
-    public Error Error { get; protected init; } = ErrorCache.None;
+    public Error Error { get; protected init; }
 
     /// <summary>
     /// Gets a value indicating whether this result represents a successful operation.
@@ -55,7 +55,7 @@ public record Result
     /// </summary>
     /// <returns>A successful result.</returns>
     public static Result Success() => ResultCache.Success;
-    
+
     /// <summary>
     /// Creates a successful result containing the specified value.
     /// </summary>
