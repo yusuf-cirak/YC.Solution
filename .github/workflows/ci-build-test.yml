@@ -3,8 +3,20 @@ name: Build and Test
 on:
   push:
     branches: [ master, main ]
+    paths:
+      - 'src/**/*.cs'
+      - 'test/**/*.cs'
+      - '**/*.csproj'
+      - '**/*.slnx'
+      - '.github/version-config.json'
   pull_request:
     branches: [ master, main ]
+    paths:
+      - 'src/**/*.cs'
+      - 'test/**/*.cs'
+      - '**/*.csproj'
+      - '**/*.slnx'
+      - '.github/version-config.json'
   workflow_dispatch:
 
 jobs:
@@ -48,4 +60,3 @@ jobs:
 
           echo "✓ Valid version in $CSPROJ: $VERSION"
         done
-

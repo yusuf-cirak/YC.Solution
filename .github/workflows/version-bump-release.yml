@@ -2,23 +2,6 @@ name: Automated Version Bump and Release
 
 on:
   workflow_dispatch:
-    inputs:
-      bump_type:
-        type: choice
-        description: 'Version bump type'
-        options:
-          - 'patch'
-          - 'minor'
-          - 'major'
-        required: true
-      package:
-        type: choice
-        description: 'Which package to bump?'
-        options:
-          - 'YC.Monad'
-          - 'YC.Monad.EntityFrameworkCore'
-          - 'Both'
-        required: true
 
 jobs:
   version-bump:

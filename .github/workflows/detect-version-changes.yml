@@ -1,10 +1,9 @@
 name: Detect Version Changes
 
 on:
-  push:
-    branches: [ master, main ]
-    paths:
-      - 'src/**/YC.*.csproj'
+  workflow_run:
+    workflows: ["Build and Test"]
+    types: [completed]
   workflow_dispatch:
 
 jobs:
@@ -64,4 +63,3 @@ jobs:
         run: |
           echo "Version changes detected:"
           echo "${{ needs.detect-versions.outputs.packages }}" | jq '.'
-

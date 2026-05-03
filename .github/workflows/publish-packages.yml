@@ -1,21 +1,13 @@
 name: Publish NuGet Packages
 
 on:
-  workflow_dispatch:
-    inputs:
-      packages:
-        type: choice
-        description: 'Which packages to publish?'
-        options:
-          - 'YC.Monad'
-          - 'YC.Monad.EntityFrameworkCore'
-          - 'All'
-      version:
-        description: 'Version to publish'
-        required: true
+  workflow_run:
+    workflows: ["Generate Changelog"]
+    types: [completed]
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -105,4 +97,3 @@ jobs:
         name: nuget-packages
         path: ./nuget/
         retention-days: 30
-
