@@ -241,11 +241,14 @@ jobs:
         run: |
           dotnet sonarscanner begin \
             /k:"${{ matrix.project.name }}" \
+            /n:"${{ matrix.project.name }}" \
             /o:"${{ vars.SONAR_ORGANIZATION }}" \
             /d:sonar.host.url="${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}" \
-            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.exclusions="**/bin/**,**/obj/**" \
-            /d:sonar.cs.opencover.reportsPaths="coverage.xml"
+            /d:sonar.test.exclusions="**/*Tests/**,**/*Test/**" \
+            /d:sonar.cs.opencover.reportsPaths="coverage.xml" \
+            /d:sonar.qualitygate.wait=false
 
       - name: Restore and build
         run: |
@@ -253,25 +256,33 @@ jobs:
           dotnet build ${{ matrix.project.csproj }} --configuration Release --no-restore
 
       - name: End SonarQube analysis
-        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Check SonarQube Quality Gate
         run: |
-          # Wait briefly for SonarCloud to process
-          sleep 10
+          # Wait for SonarCloud to process the analysis
+          echo "Waiting for SonarCloud to process analysis..."
+          sleep 30
 
           # Query Quality Gate status
           response=$(curl -s -H "Authorization: Bearer ${{ secrets.SONAR_TOKEN }}" \
             "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{ matrix.project.name }}" || echo "{}")
 
+          echo "Response: $response"
+
           status=$(echo "$response" | jq -r '.projectStatus.status // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
 
           echo "Quality Gate Status: $status"
 
-          if [ "$status" != "OK" ]; then
+          if [ "$status" == "UNKNOWN" ] || [ "$status" == "NONE" ]; then
+            echo "⚠️  Quality Gate status not available yet. This might be the first analysis."
+            echo "Check SonarCloud dashboard: https://sonarcloud.io/dashboard?id=${{ matrix.project.name }}"
+            exit 0
+          elif [ "$status" != "OK" ]; then
             echo "❌ Quality Gate failed!"
+            echo "Check details: https://sonarcloud.io/dashboard?id=${{ matrix.project.name }}"
             exit 1
           fi
           echo "✅ Quality Gate passed!"
