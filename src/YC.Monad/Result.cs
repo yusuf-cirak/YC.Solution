@@ -4,18 +4,24 @@
 /// Represents a discriminated union of a success state or a failure state with an error.
 /// This monad is useful for error handling and expressing business logic outcomes.
 /// </summary>
-public record Result
+/// <remarks>
+/// <see cref="Result"/> and <see cref="Result{TValue}"/> are independent value types (they do not
+/// inherit from one another — structs cannot). <c>default(Result)</c> has <see cref="IsSuccess"/> equal
+/// to <see langword="false"/>, so an uninitialized <see cref="Result"/> reads as a failure rather than
+/// silently as a success.
+/// </remarks>
+public readonly record struct Result
 {
     /// <summary>
     /// Gets the error associated with this result if it represents a failure.
     /// </summary>
-    public Error Error { get; protected init; }
+    public Error Error { get; }
 
     /// <summary>
     /// Gets a value indicating whether this result represents a successful operation.
     /// </summary>
     /// <value>true if this result represents success; otherwise, false.</value>
-    public bool IsSuccess { get; protected init; }
+    public bool IsSuccess { get; }
 
     /// <summary>
     /// Gets a value indicating whether this result represents a failed operation.
@@ -24,24 +30,7 @@ public record Result
     public bool IsFailure => !IsSuccess;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Result"/> class.
-    /// </summary>
-    protected Result()
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Result"/> class with the specified error.
-    /// </summary>
-    /// <param name="error">The error that caused the failure.</param>
-    private Result(Error error)
-    {
-        Error = error;
-        IsSuccess = false;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Result"/> class with the specified success state.
+    /// Initializes a new instance of the <see cref="Result"/> struct with the specified success state.
     /// </summary>
     /// <param name="isSuccess">A value indicating whether this result represents success.</param>
     internal Result(bool isSuccess)
@@ -50,10 +39,20 @@ public record Result
     }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="Result"/> struct with the specified error.
+    /// </summary>
+    /// <param name="error">The error that caused the failure.</param>
+    internal Result(Error error)
+    {
+        Error = error;
+        IsSuccess = false;
+    }
+
+    /// <summary>
     /// Creates a successful result.
     /// </summary>
     /// <returns>A successful result.</returns>
-    public static Result Success() => ResultCache.Success;
+    public static Result Success() => new(true);
 
     /// <summary>
     /// Creates a successful result containing the specified value.
@@ -80,7 +79,7 @@ public record Result
     /// Creates a failed result with no specific error.
     /// </summary>
     /// <returns>A failed result.</returns>
-    public static Result Failure() => ResultCache.Failure;
+    public static Result Failure() => new(false);
 
     /// <summary>
     /// Implicitly converts an error to a failed result.
@@ -100,22 +99,13 @@ public record Result
         => IsSuccess ? success() : failure(Error);
 
     /// <summary>
-    /// Converts a result to a typed result of the specified type.
+    /// Converts this untyped result to a <see cref="Result{TValue}"/>, using the default value of
+    /// <typeparamref name="TValue"/> for the success case (this result carries no value to preserve).
     /// </summary>
-    /// <typeparam name="TResponse">The type of result to convert to.</typeparam>
-    /// <returns>A typed result with the same success state and error (if any) as the input result.</returns>
-    public TResponse ToTypedResult<TResponse>() where TResponse : Result
-    {
-        if (typeof(TResponse) == typeof(Result))
-        {
-            return (TResponse)this;
-        }
-
-        var genericType = typeof(TResponse).GetGenericArguments()[0];
-        var genericResultType = typeof(Result<>).MakeGenericType(genericType);
-        return (TResponse)genericResultType.GetMethod(nameof(Result<object>.From))!
-            .Invoke(null, new object[] { this })!;
-    }
+    /// <typeparam name="TValue">The value type of the target result.</typeparam>
+    /// <returns>A typed result with the same success state and error (if any) as this result.</returns>
+    public Result<TValue> ToTypedResult<TValue>()
+        => IsSuccess ? Result<TValue>.Success(default!) : Result<TValue>.Failure(Error);
 }
 
 /// <summary>
@@ -123,16 +113,33 @@ public record Result
 /// or a failure state with an error. This monad combines error handling with type-safe value wrapping.
 /// </summary>
 /// <typeparam name="TValue">The type of the value in case of success.</typeparam>
-public record Result<TValue> : Result
+public readonly record struct Result<TValue>
 {
     /// <summary>
     /// Gets the value associated with this result if it represents success.
     /// </summary>
     /// <value>The value if this result represents success.</value>
-    public TValue Value { get; } = default!;
+    public TValue Value { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Result{TValue}"/> class with a success value.
+    /// Gets the error associated with this result if it represents a failure.
+    /// </summary>
+    public Error Error { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this result represents a successful operation.
+    /// </summary>
+    /// <value>true if this result represents success; otherwise, false.</value>
+    public bool IsSuccess { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this result represents a failed operation.
+    /// </summary>
+    /// <value>true if this result represents failure; otherwise, false.</value>
+    public bool IsFailure => !IsSuccess;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Result{TValue}"/> struct with a success value.
     /// </summary>
     /// <param name="value">The success value.</param>
     internal Result(TValue value)
@@ -142,15 +149,14 @@ public record Result<TValue> : Result
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Result{TValue}"/> class with an error.
+    /// Initializes a new instance of the <see cref="Result{TValue}"/> struct with an error.
     /// </summary>
     /// <param name="error">The error that caused the failure.</param>
-    internal Result(Error error) : base()
+    internal Result(Error error)
     {
         Error = error;
         IsSuccess = false;
     }
-
 
     /// <summary>
     /// Creates a successful result containing the specified value.
@@ -164,7 +170,7 @@ public record Result<TValue> : Result
     /// </summary>
     /// <param name="error">The error that caused the failure.</param>
     /// <returns>A failed result containing the specified error.</returns>
-    public new static Result<TValue> Failure(Error error) => new(error);
+    public static Result<TValue> Failure(Error error) => new(error);
 
     /// <summary>
     /// Implicitly converts a value to a successful result containing that value.
@@ -185,7 +191,7 @@ public record Result<TValue> : Result
     /// </summary>
     /// <param name="result">The untyped result to convert.</param>
     /// <returns>A typed result with the same success state and error (if any) as the input result.</returns>
-    public static Result<TValue> From(Result result) => result.IsSuccess ? Success(default!) : Failure(result.Error);
+    public static Result<TValue> From(Result result) => result.ToTypedResult<TValue>();
 
     /// <summary>
     /// Matches the result to one of two functions based on whether it represents success or failure.
@@ -195,5 +201,5 @@ public record Result<TValue> : Result
     /// <param name="failure">The function to execute if this result represents failure.</param>
     /// <returns>The result of executing either the success or failure function.</returns>
     public TResult Match<TResult>(Func<TValue, TResult> success, Func<Error, TResult> failure)
-        => this.IsSuccess ? success(this.Value) : failure(this.Error);
+        => IsSuccess ? success(Value) : failure(Error);
 }

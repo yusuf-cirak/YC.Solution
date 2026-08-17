@@ -491,4 +491,94 @@ namespace YC.Monad.UnitTests
             Assert.Equal("PREDICATE_FAILED", combined.Error.Code);
         }
     }
+
+    public class ResultStructBehaviorTests
+    {
+        [Fact]
+        public void Result_IsValueType()
+        {
+            Assert.True(typeof(Result).IsValueType);
+        }
+
+        [Fact]
+        public void ResultGeneric_IsValueType()
+        {
+            Assert.True(typeof(Result<int>).IsValueType);
+        }
+
+        [Fact]
+        public void Result_Default_IsFailure()
+        {
+            // Regression test: default(Result) must read as a failure, not a silent success,
+            // since Result and Result<T> are independent structs with no shared base type.
+            var result = default(Result);
+
+            Assert.False(result.IsSuccess);
+            Assert.True(result.IsFailure);
+        }
+
+        [Fact]
+        public void ResultGeneric_Default_IsFailure()
+        {
+            var result = default(Result<int>);
+
+            Assert.False(result.IsSuccess);
+            Assert.True(result.IsFailure);
+        }
+
+        [Fact]
+        public void ResultGeneric_Equals_ComparesByValue()
+        {
+            var a = Result<int>.Success(5);
+            var b = Result<int>.Success(5);
+            var c = Result<int>.Success(6);
+
+            Assert.Equal(a, b);
+            Assert.NotEqual(a, c);
+        }
+
+        [Fact]
+        public void Result_Equals_ComparesByValue()
+        {
+            var error = Error.Create("SAME", "same error");
+            var a = Result.Failure(error);
+            var b = Result.Failure(error);
+
+            Assert.Equal(a, b);
+        }
+
+        [Fact]
+        public void ToTypedResult_OnSuccess_ReturnsSuccessfulTypedResult()
+        {
+            var untyped = Result.Success();
+
+            var typed = untyped.ToTypedResult<int>();
+
+            Assert.True(typed.IsSuccess);
+        }
+
+        [Fact]
+        public void ToTypedResult_OnFailure_ReturnsFailedTypedResultWithSameError()
+        {
+            var error = Error.Create("TYPED_FAILURE", "failed");
+            var untyped = Result.Failure(error);
+
+            var typed = untyped.ToTypedResult<int>();
+
+            Assert.False(typed.IsSuccess);
+            Assert.Equal(error, typed.Error);
+        }
+
+        [Fact]
+        public void ResultGeneric_From_MirrorsToTypedResult()
+        {
+            var error = Error.Create("FROM_FAILURE", "failed");
+            var untyped = Result.Failure(error);
+
+            var typed = Result<int>.From(untyped);
+
+            Assert.False(typed.IsSuccess);
+            Assert.Equal(error, typed.Error);
+        }
+    }
 }

@@ -1,20 +1,15 @@
 namespace YC.Monad;
 
 /// <summary>
-/// Provides cached instances of commonly used Result objects.
+/// Provides pre-built <see cref="Result"/> instances for commonly used errors.
 /// </summary>
+/// <remarks>
+/// <see cref="Result"/> is a value type, so these fields exist for convenience/DRY rather than to avoid
+/// allocation — constructing a <see cref="Result"/> directly (e.g. <see cref="Result.Success()"/>) is just
+/// as cheap.
+/// </remarks>
 public static class ResultCache
 {
-    /// <summary>
-    /// A cached successful result.
-    /// </summary>
-    internal static readonly Result Success = new(true);
-
-    /// <summary>
-    /// A cached failed result.
-    /// </summary>
-    internal static readonly Result Failure = new(false);
-
     /// <summary>
     /// A cached unauthorized error result.
     /// </summary>

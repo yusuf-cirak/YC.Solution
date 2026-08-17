@@ -15,6 +15,8 @@ YC.Monad is a .NET library implementing functional programming patterns through 
 
 This library is designed to improve code reliability and readability by providing functional programming patterns in an idiomatic C# way.
 
+`Result`, `Result<T>`, and `Error` are `readonly record struct` value types — using them (including in `Bind`/`Map`/`Tap` chains and collections) allocates no heap memory. The one case where this trades against you: wrapping a *large value type* (a big struct) as `T` in `Result<T>`, since the whole value gets copied on every hand-off; wrapping a reference type (a class, array, etc.) is unaffected regardless of its size, since only the reference is copied.
+
 ## Getting Started
 
 ### Dependencies
@@ -49,6 +51,16 @@ var notFound = ErrorCache.NotFound;      // 404 Not Found
 var badRequest = ErrorCache.BadRequest;   // 400 Bad Request
 var unauthorized = ErrorCache.Unauthorized; // 401 Unauthorized
 var forbidden = ErrorCache.Forbidden;     // 403 Forbidden
+
+// Attach extra context without mutating the original Error (each With* call returns a new value)
+var enrichedError = notFound
+    .WithAttribute("userId", 42)
+    .WithAttribute("resource", "Order");
+
+if (enrichedError.TryGetAttribute("userId", out var userId))
+{
+    Console.WriteLine($"User {userId} triggered the error");
+}
 ```
 
 ### Result Type
@@ -85,7 +97,7 @@ var output = result.Match(
 
 // Converting between Result types
 Result untyped = Result.Success();
-Result<int> typed = untyped.ToTypedResult<Result<int>>();
+Result<int> typed = untyped.ToTypedResult<int>(); // success carries default(int); use Result<T> directly to carry a real value
 ```
 
 ### Result Railway (Railroad Oriented Programming)
@@ -176,8 +188,13 @@ var result =
 
 // Extension methods for collections
 var items = new[] { 1, 2, 3, 4, 5 };
+var first = items.FirstOrNone();               // Some(1), or None if empty
 var firstEven = items.FirstOrNone(x => x % 2 == 0);
 var singleOdd = items.SingleOrNone(x => x == 3);
+
+// The same extensions are available on IQueryable<T> (e.g. EF Core DbSet<T>),
+// executing FirstOrNone/SingleOrNone against the query provider
+Option<User> user = dbContext.Users.FirstOrNone(u => u.Id == id);
 
 // Safe value access
 if (some.TryGetValue(out var value))
@@ -222,6 +239,45 @@ var combined =
 4. Use the cached errors from `ErrorCache` for common scenarios
 5. Take advantage of implicit conversions for cleaner code
 6. Use LINQ query syntax for combining multiple Results or Options
+
+## Performance
+
+`Result`/`Result<T>` moved from a class (`record`, heap-allocated) to a `readonly record struct` in 2.0.
+Local BenchmarkDotNet runs comparing the old class shape against the new struct shape (`Int32` payload
+unless noted):
+
+| Scenario | Class (old) | Struct (2.0) | Notes |
+|---|---|---|---|
+| Construct `Success`/`Failure` in a loop (N=100k) | 307.8 us, 6.4 MB allocated | 71.0 us, **0 B** | ~4.3x faster |
+| 5-step `Bind`/`Map`-style chain (N=100k) | 1493 us, 38.4 MB allocated | 40.6 us, **0 B** | ~37x faster — the library's core usage pattern |
+| Iterate + sum an array of results (N=500k) | 567.7 us | 195.3 us | ~2.9x faster (contiguous memory, no pointer-chasing) |
+| Adjacent equality checks (N=100k) | 196.3 us | 113.0 us | ~1.7x faster |
+
+**Where the struct can lose:** if `T` in `Result<T>` is itself a *large value type* (not a class/array —
+those are always cheap, just a reference) and the result is passed through many chained calls, the inline
+copy cost can outweigh the allocation savings. Measured with a 512-byte value-type payload through a
+5-step chain (N=2000): class 80.2 us / 1.1 MB allocated vs. struct 98.8 us / **0 B** — struct was
+**~23% slower** despite zero allocation. Keep `T` small (primitives, `Guid`, small DTOs) or reference-typed
+for payloads that travel through long chains; see [Migrating to 2.0](#migrating-to-20) below.
+
+## Migrating to 2.0
+
+`Result` and `Result<TValue>` changed from reference types (`record`, with `Result<TValue> : Result`) to
+independent `readonly record struct` value types. This removes heap allocation from every `Success`/`Failure`
+creation and every `Bind`/`Map`/`Tap` step, at the cost of the following breaking changes:
+
+- `Result<TValue>` no longer inherits from `Result` — code that assigned a `Result<TValue>` to a
+  `Result`-typed variable, or did `is Result`/cast between them, no longer compiles.
+- `default(Result)` / `default(Result<TValue>)` now has `IsSuccess == false` (previously `default` was
+  simply `null`). Fail-safe, but worth knowing if you relied on `Result` being a nullable reference.
+- `Error != null` / `Result != null` checks are meaningless now (structs are never `null`) — use
+  `IsSuccess`/`IsFailure` instead.
+- `ToTypedResult<TResponse>()` (which took `where TResponse : Result`, e.g. `ToTypedResult<Result<int>>()`)
+  is now `ToTypedResult<TValue>()` (e.g. `ToTypedResult<int>()`) — pass the value type directly, not a
+  `Result<T>` type argument.
+- `Result<TValue>` embeds `TValue` inline. If `TValue` is itself a large struct that gets passed through many
+  chained calls, the per-call copy cost can outweigh the allocation savings — prefer a reference type (or keep
+  `TValue` small) for payloads that travel through long `Bind`/`Map` chains.
 
 ## Authors
 

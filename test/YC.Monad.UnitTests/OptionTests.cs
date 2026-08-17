@@ -139,6 +139,33 @@ namespace YC.Monad.UnitTests
     public class OptionExtensionsTests
     {
         [Fact]
+        public void FirstOrNone_NoPredicate_ReturnsFirstElement()
+        {
+            // Arrange
+            var list = new List<int> { 1, 2, 3 };
+
+            // Act
+            var option = list.FirstOrNone();
+
+            // Assert
+            Assert.True(option.TryGetValue(out var result));
+            Assert.Equal(1, result);
+        }
+
+        [Fact]
+        public void FirstOrNone_NoPredicate_OnEmptySequence_ReturnsNone()
+        {
+            // Arrange
+            var list = new List<int>();
+
+            // Act
+            var option = list.FirstOrNone();
+
+            // Assert
+            Assert.False(option.TryGetValue(out _));
+        }
+
+        [Fact]
         public void FirstOrNone_FindsFirstMatchingValue()
         {
             // Arrange
@@ -187,6 +214,22 @@ namespace YC.Monad.UnitTests
 
             // Act
             var option = list.SingleOrNone(x => x == 5);
+
+            // Assert
+            Assert.False(option.TryGetValue(out _));
+        }
+
+        [Fact]
+        public void SingleOrNone_ReturnsNoneWhenMultipleMatchesFound()
+        {
+            // Regression test: previously threw InvalidOperationException instead of
+            // returning None as documented when more than one element matches.
+
+            // Arrange
+            var list = new List<int> { 1, 2, 2, 3 };
+
+            // Act
+            var option = list.SingleOrNone(x => x == 2);
 
             // Assert
             Assert.False(option.TryGetValue(out _));
